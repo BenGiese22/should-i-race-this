@@ -596,7 +596,7 @@ export default function RecommendationsDashboard() {
                 ) : baseItems.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-muted-foreground">
-                      No recommendations available for this mode yet.
+                      No recommendations found.
                     </TableCell>
                   </TableRow>
                 ) : visibleRecommendations.length === 0 ? (

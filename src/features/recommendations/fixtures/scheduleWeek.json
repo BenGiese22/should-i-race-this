@@ -1,0 +1,74 @@
+[
+  {
+    "seriesId": 101,
+    "seriesName": "Global Mazda MX-5 Cup",
+    "trackId": 201,
+    "trackName": "Okayama Intl Circuit",
+    "timeSlotLocalHour": 9,
+    "raceLengthMin": 25,
+    "isFixedSetup": true
+  },
+  {
+    "seriesId": 102,
+    "seriesName": "GT4 Fixed",
+    "trackId": 202,
+    "trackName": "Laguna Seca",
+    "timeSlotLocalHour": 15,
+    "raceLengthMin": 20,
+    "isFixedSetup": true
+  },
+  {
+    "seriesId": 103,
+    "seriesName": "Toyota GR86 Cup",
+    "trackId": 203,
+    "trackName": "Lime Rock Park",
+    "timeSlotLocalHour": 12,
+    "raceLengthMin": 15,
+    "isFixedSetup": true
+  },
+  {
+    "seriesId": 104,
+    "seriesName": "Touring Car Challenge",
+    "trackId": 204,
+    "trackName": "Road Atlanta",
+    "timeSlotLocalHour": 19,
+    "raceLengthMin": 25,
+    "isFixedSetup": false
+  },
+  {
+    "seriesId": 105,
+    "seriesName": "FIA F4 Challenge",
+    "trackId": 205,
+    "trackName": "VIR Full",
+    "timeSlotLocalHour": 21,
+    "raceLengthMin": 20,
+    "isFixedSetup": false
+  },
+  {
+    "seriesId": 106,
+    "seriesName": "Porsche Cup",
+    "trackId": 206,
+    "trackName": "Suzuka Circuit",
+    "timeSlotLocalHour": 22,
+    "raceLengthMin": 30,
+    "isFixedSetup": false
+  },
+  {
+    "seriesId": 107,
+    "seriesName": "GT3 Sprint",
+    "trackId": 207,
+    "trackName": "Spa-Francorchamps",
+    "timeSlotLocalHour": 20,
+    "raceLengthMin": 40,
+    "isFixedSetup": false
+  },
+  {
+    "seriesId": 108,
+    "seriesName": "Formula 4 Fixed",
+    "trackId": 208,
+    "trackName": "Watkins Glen Boot",
+    "timeSlotLocalHour": 18,
+    "raceLengthMin": 25,
+    "isFixedSetup": true
+  }
+]

@@ -1,19 +1,23 @@
 import type { RecommendationsResponse, RiskMode } from "@/features/recommendations/types";
-import { recommendationsMocks } from "@/features/recommendations/mocks/recommendations.mock";
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export async function getRecommendations(
   mode: RiskMode
 ): Promise<RecommendationsResponse> {
-  const jitterMs = 400 + Math.floor(Math.random() * 501);
-  await delay(jitterMs);
+  const url = `/api/recommendations?mode=${encodeURIComponent(mode)}`;
+  const response = await fetch(url, { cache: "no-store" });
 
-  if (mode === "sr_recovery") {
-    throw new Error("SR Recovery recommendations are temporarily unavailable.");
+  if (!response.ok) {
+    let message = `Request failed with ${response.status}.`;
+    try {
+      const payload = await response.json();
+      if (payload?.error) {
+        message = payload.error;
+      }
+    } catch {
+      // Ignore JSON parse failures and keep the default message.
+    }
+    throw new Error(message);
   }
 
-  return recommendationsMocks[mode];
+  return (await response.json()) as RecommendationsResponse;
 }

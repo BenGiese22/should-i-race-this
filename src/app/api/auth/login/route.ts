@@ -1,23 +1,26 @@
-import { NextResponse } from "next/server";
-import { pkceChallengeFromVerifier, randomUrlSafeString } from "@/lib/oauth/pkce";
+import { NextRequest, NextResponse } from "next/server";
+import { pkceChallengeFromVerifier, randomUrlSafeString } from "@/lib/auth/pkce";
+import { buildAuthorizeUrl } from "@/lib/auth/iracingOAuth";
 import { signJson, TRANSIENT_COOKIE } from "@/lib/auth/signedCookie";
 
 export const runtime = "nodejs";
 
-const OAUTH_BASE = "https://oauth.iracing.com/oauth2";
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   const clientId = process.env.IRACING_CLIENT_ID;
-  const redirectUri = process.env.IRACING_REDIRECT_URI;
   const sessionSecret = process.env.SESSION_SECRET;
 
-  if (!clientId || !redirectUri || !sessionSecret) {
+  if (!clientId || !sessionSecret) {
     return NextResponse.json(
-      { error: "Missing IRACING_CLIENT_ID, IRACING_REDIRECT_URI, or SESSION_SECRET" },
+      { error: "Missing IRACING_CLIENT_ID or SESSION_SECRET" },
       { status: 500 }
     );
   }
 
+  const requestUrl = new URL(req.url);
+  const host =
+    requestUrl.hostname === "localhost" ? "127.0.0.1" : requestUrl.hostname;
+  const origin = `${requestUrl.protocol}//${host}${requestUrl.port ? `:${requestUrl.port}` : ""}`;
+  const redirectUri = new URL("/oauth/callback", origin).toString();
   const state = randomUrlSafeString(24);
   const codeVerifier = randomUrlSafeString(64);
   const codeChallenge = pkceChallengeFromVerifier(codeVerifier);
@@ -30,14 +33,13 @@ export async function GET() {
     sessionSecret
   );
 
-  const authorizeUrl =
-    `${OAUTH_BASE}/authorize?response_type=code` +
-    `&client_id=${encodeURIComponent(clientId)}` +
-    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&scope=${encodeURIComponent(scope)}` +
-    `&state=${encodeURIComponent(state)}` +
-    `&code_challenge=${encodeURIComponent(codeChallenge)}` +
-    `&code_challenge_method=S256`;
+  const authorizeUrl = buildAuthorizeUrl({
+    clientId,
+    redirectUri,
+    scope,
+    state,
+    codeChallenge,
+  });
 
   const res = NextResponse.redirect(authorizeUrl);
 

@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import IracingLoginButton from "@/components/IracingLoginButton";
 
 export default function HomePage() {
   return (
@@ -14,12 +13,10 @@ export default function HomePage() {
           Safety Rating risk.
         </p>
 
-        <Button asChild className="h-12 px-6">
-          <Link href="/dashboard">Open Dashboard (Mock)</Link>
-        </Button>
+        <IracingLoginButton />
 
         <p className="text-xs text-muted-foreground">
-          (We’ll wire OAuth login back in once Redirect URIs are corrected.)
+          Sign in to fetch your profile and personalize recommendations.
         </p>
       </div>
     </main>

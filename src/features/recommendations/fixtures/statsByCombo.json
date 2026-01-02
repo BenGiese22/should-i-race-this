@@ -1,0 +1,114 @@
+{
+  "101-201": {
+    "personal": {
+      "expectedFinishDeltaPositions": 2.8,
+      "incidentsPerRace": 4.2,
+      "finishPositionStdDev": 4.0,
+      "startsOnCombo": 12
+    },
+    "global": {
+      "incidentsPerRaceAvg": 6.8,
+      "finishPositionStdDevAvg": 5.6,
+      "attritionRate": 0.16,
+      "sofStdDevByTimeSlot": 320
+    }
+  },
+  "102-202": {
+    "personal": {
+      "expectedFinishDeltaPositions": 1.1,
+      "incidentsPerRace": 5.8,
+      "finishPositionStdDev": 5.2,
+      "startsOnCombo": 9
+    },
+    "global": {
+      "incidentsPerRaceAvg": 7.2,
+      "finishPositionStdDevAvg": 6.4,
+      "attritionRate": 0.2,
+      "sofStdDevByTimeSlot": 410
+    }
+  },
+  "103-203": {
+    "personal": {
+      "expectedFinishDeltaPositions": 1.9,
+      "incidentsPerRace": 7.5,
+      "finishPositionStdDev": 6.1,
+      "startsOnCombo": 7
+    },
+    "global": {
+      "incidentsPerRaceAvg": 8.1,
+      "finishPositionStdDevAvg": 6.9,
+      "attritionRate": 0.22,
+      "sofStdDevByTimeSlot": 480
+    }
+  },
+  "104-204": {
+    "personal": {
+      "expectedFinishDeltaPositions": 0.4,
+      "incidentsPerRace": 8.8,
+      "finishPositionStdDev": 6.8,
+      "startsOnCombo": 5
+    },
+    "global": {
+      "incidentsPerRaceAvg": 9.5,
+      "finishPositionStdDevAvg": 7.2,
+      "attritionRate": 0.28,
+      "sofStdDevByTimeSlot": 520
+    }
+  },
+  "105-205": {
+    "personal": {
+      "expectedFinishDeltaPositions": -0.8,
+      "incidentsPerRace": 11.2,
+      "finishPositionStdDev": 7.8,
+      "startsOnCombo": 3
+    },
+    "global": {
+      "incidentsPerRaceAvg": 10.2,
+      "finishPositionStdDevAvg": 7.8,
+      "attritionRate": 0.32,
+      "sofStdDevByTimeSlot": 610
+    }
+  },
+  "106-206": {
+    "personal": {
+      "expectedFinishDeltaPositions": -1.4,
+      "incidentsPerRace": 9.6,
+      "finishPositionStdDev": 8.2,
+      "startsOnCombo": 2
+    },
+    "global": {
+      "incidentsPerRaceAvg": 9.8,
+      "finishPositionStdDevAvg": 8.6,
+      "attritionRate": 0.35,
+      "sofStdDevByTimeSlot": 700
+    }
+  },
+  "107-207": {
+    "personal": {
+      "expectedFinishDeltaPositions": 3.6,
+      "incidentsPerRace": 6.2,
+      "finishPositionStdDev": 5.4,
+      "startsOnCombo": 10
+    },
+    "global": {
+      "incidentsPerRaceAvg": 7.0,
+      "finishPositionStdDevAvg": 6.2,
+      "attritionRate": 0.24,
+      "sofStdDevByTimeSlot": 560
+    }
+  },
+  "108-208": {
+    "personal": {
+      "expectedFinishDeltaPositions": 0.9,
+      "incidentsPerRace": 6.5,
+      "finishPositionStdDev": 5.8,
+      "startsOnCombo": 6
+    },
+    "global": {
+      "incidentsPerRaceAvg": 7.6,
+      "finishPositionStdDevAvg": 6.6,
+      "attritionRate": 0.2,
+      "sofStdDevByTimeSlot": 470
+    }
+  }
+}

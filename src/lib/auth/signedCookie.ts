@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
 export const TRANSIENT_COOKIE = "sirtr_oauth"; // short-lived cookie for PKCE/state
+export const SESSION_COOKIE = "sirtr_session";
 
 function hmac(payload: string, secret: string) {
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
