@@ -31,7 +31,8 @@ function extractRaces(payload: RecentRacesResponse): RecentRace[] {
 
 function hasRequiredNumbers(
   race: RecentRace
-): race is Required<Pick<RecentRace, "series_id" | "track_id" | "finish_pos" | "incidents">> {
+): race is RecentRace &
+  Required<Pick<RecentRace, "series_id" | "track_id" | "finish_pos" | "incidents">> {
   return (
     typeof race.series_id === "number" &&
     typeof race.track_id === "number" &&

@@ -43,25 +43,6 @@ async function getSeasonWindow(): Promise<PerformanceWindow> {
   };
 }
 
-type GroupBySeries = {
-  seriesId: number;
-  _count: { _all: number };
-  _avg: { finishPos: number | null; incidents: number | null };
-};
-
-type GroupByTrack = {
-  trackId: number;
-  _count: { _all: number };
-  _avg: { finishPos: number | null; incidents: number | null };
-};
-
-type GroupByCombo = {
-  seriesId: number;
-  trackId: number;
-  _count: { _all: number };
-  _avg: { finishPos: number | null; incidents: number | null };
-};
-
 function sortRows(rows: PerformanceRow[]) {
   return rows.sort((a, b) => {
     const startsDelta = b.starts - a.starts;
@@ -80,12 +61,12 @@ export async function getPerformanceSummary(
   }
 
   if (view === "series") {
-    const grouped = (await prisma.memberRaceResult.groupBy({
+    const grouped = await prisma.memberRaceResult.groupBy({
       by: ["seriesId"],
       where: { custId, seasonId: { in: window.seasonIds } },
       _count: { _all: true },
       _avg: { finishPos: true, incidents: true },
-    })) as GroupBySeries[];
+    });
 
     const seriesIds = grouped.map((row) => row.seriesId);
     const series = await prisma.series.findMany({
@@ -107,12 +88,12 @@ export async function getPerformanceSummary(
   }
 
   if (view === "track") {
-    const grouped = (await prisma.memberRaceResult.groupBy({
+    const grouped = await prisma.memberRaceResult.groupBy({
       by: ["trackId"],
       where: { custId, seasonId: { in: window.seasonIds } },
       _count: { _all: true },
       _avg: { finishPos: true, incidents: true },
-    })) as GroupByTrack[];
+    });
 
     const trackIds = grouped.map((row) => row.trackId);
     const tracks = await prisma.track.findMany({
@@ -133,12 +114,12 @@ export async function getPerformanceSummary(
     return { window, view, rows: sortRows(rows) };
   }
 
-  const grouped = (await prisma.memberRaceResult.groupBy({
+  const grouped = await prisma.memberRaceResult.groupBy({
     by: ["seriesId", "trackId"],
     where: { custId, seasonId: { in: window.seasonIds } },
     _count: { _all: true },
     _avg: { finishPos: true, incidents: true },
-  })) as GroupByCombo[];
+  });
 
   const seriesIds = Array.from(new Set(grouped.map((row) => row.seriesId)));
   const trackIds = Array.from(new Set(grouped.map((row) => row.trackId)));
