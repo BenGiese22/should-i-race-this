@@ -25,7 +25,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const stats = await prisma.memberSeriesStat.findMany({
+  type SeriesStatWithSeries = {
+    seriesId: number;
+    starts: number;
+    avgFinishPos: number;
+    incidentsPerRace: number;
+    lastRaceAt: Date | null;
+    series: { name: string };
+  };
+
+  const stats: SeriesStatWithSeries[] = await prisma.memberSeriesStat.findMany({
     where: { custId },
     include: { series: true },
     orderBy: [{ starts: "desc" }, { avgFinishPos: "asc" }],

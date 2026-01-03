@@ -25,7 +25,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const stats = await prisma.memberTrackStat.findMany({
+  type TrackStatWithTrack = {
+    trackId: number;
+    starts: number;
+    avgFinishPos: number;
+    incidentsPerRace: number;
+    lastRaceAt: Date | null;
+    track: { name: string };
+  };
+
+  const stats: TrackStatWithTrack[] = await prisma.memberTrackStat.findMany({
     where: { custId },
     include: { track: true },
     orderBy: [{ starts: "desc" }, { avgFinishPos: "asc" }],
