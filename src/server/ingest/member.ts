@@ -103,7 +103,7 @@ async function fetchMemberLicenses(
     try {
       return await iracingDataFetch<MemberResponse>(account, path, {
         cust_ids: custId,
-        include_licenses: true,
+        include_licenses: "true",
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

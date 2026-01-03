@@ -9,6 +9,7 @@ import { scoreRace } from "@/lib/scoring/scoreRace";
 import type { GlobalStats, PersonalStats } from "@/lib/scoring/types";
 import { verifyJson, SESSION_COOKIE } from "@/lib/auth/signedCookie";
 import { prisma } from "@/server/db/prisma";
+import type { MemberLicense } from "@/generated/prisma";
 
 const RISK_MODES: RiskMode[] = ["balanced", "irating_push", "sr_recovery"];
 function parseMode(value: string | null): RiskMode | null {
@@ -134,7 +135,7 @@ export async function GET(request: NextRequest) {
     orderBy: { seriesId: "asc" },
   });
 
-  const licenses = await prisma.memberLicense.findMany({
+  const licenses: MemberLicense[] = await prisma.memberLicense.findMany({
     where: { custId },
   });
 
