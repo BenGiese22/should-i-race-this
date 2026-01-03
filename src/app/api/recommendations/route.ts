@@ -9,7 +9,6 @@ import { scoreRace } from "@/lib/scoring/scoreRace";
 import type { GlobalStats, PersonalStats } from "@/lib/scoring/types";
 import { verifyJson, SESSION_COOKIE } from "@/lib/auth/signedCookie";
 import { prisma } from "@/server/db/prisma";
-import type { Prisma } from "@prisma/client";
 
 const RISK_MODES: RiskMode[] = ["balanced", "irating_push", "sr_recovery"];
 function parseMode(value: string | null): RiskMode | null {
@@ -135,8 +134,13 @@ export async function GET(request: NextRequest) {
     orderBy: { seriesId: "asc" },
   });
 
-  const licenses: Prisma.MemberLicenseGetPayload<{}>[] =
-    await prisma.memberLicense.findMany({
+  type MemberLicense = {
+    category: string;
+    irating: number;
+    sr: number;
+  };
+
+  const licenses: MemberLicense[] = await prisma.memberLicense.findMany({
     where: { custId },
   });
 
