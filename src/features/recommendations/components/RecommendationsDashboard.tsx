@@ -34,16 +34,15 @@ import {
 import ThemeToggle from "@/components/ThemeToggle";
 
 import type {
+  PerformanceResponse,
+  PerformanceView,
   Recommendation,
   RecommendationsResponse,
   RiskLevel,
   RiskMode,
-  SeriesStat,
-  TrackStat,
 } from "@/features/recommendations/types";
 import { getRecommendations } from "@/features/recommendations/data/getRecommendations";
-import { getSeriesStats } from "@/features/recommendations/data/getSeriesStats";
-import { getTrackStats } from "@/features/recommendations/data/getTrackStats";
+import { getPerformanceSummary } from "@/features/recommendations/data/getPerformanceSummary";
 
 type SortKey =
   | "score"
@@ -135,8 +134,10 @@ function Bar({ label, value }: { label: string; value: number }) {
 export default function RecommendationsDashboard() {
   const [mode, setMode] = useState<RiskMode>("balanced");
   const [data, setData] = useState<RecommendationsResponse | null>(null);
-  const [trackStats, setTrackStats] = useState<TrackStat[]>([]);
-  const [seriesStats, setSeriesStats] = useState<SeriesStat[]>([]);
+  const [performanceView, setPerformanceView] =
+    useState<PerformanceView>("series");
+  const [performanceData, setPerformanceData] =
+    useState<PerformanceResponse | null>(null);
 
   const [selected, setSelected] = useState<Recommendation | null>(null);
   const [open, setOpen] = useState(false);
@@ -144,6 +145,8 @@ export default function RecommendationsDashboard() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [statsErr, setStatsErr] = useState<string | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsSearch, setStatsSearch] = useState("");
   const requestIdRef = useRef(0);
 
   const [sortKey, setSortKey] = useState<SortKey>(DEFAULT_SORT_KEY);
@@ -189,29 +192,33 @@ export default function RecommendationsDashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    async function loadStats() {
+    async function loadPerformance() {
       setStatsErr(null);
+      setStatsLoading(true);
+      setPerformanceData(null);
       try {
-        const [tracks, series] = await Promise.all([
-          getTrackStats(),
-          getSeriesStats(),
-        ]);
+        const response = await getPerformanceSummary(performanceView);
         if (cancelled) return;
-        setTrackStats(tracks.items);
-        setSeriesStats(series.items);
+        setPerformanceData(response);
       } catch (error) {
         if (cancelled) return;
         const message =
-          error instanceof Error ? error.message : "Failed to load stats.";
+          error instanceof Error
+            ? error.message
+            : "Failed to load performance summary.";
         setStatsErr(message);
+      } finally {
+        if (!cancelled) {
+          setStatsLoading(false);
+        }
       }
     }
 
-    loadStats();
+    loadPerformance();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [performanceView]);
 
   const modeMeta = MODES.find((m) => m.value === mode)!;
 
@@ -252,6 +259,13 @@ export default function RecommendationsDashboard() {
       return [Math.min(nextMin, nextMax), Math.max(nextMin, nextMax)];
     });
   }, [baseItems, minHour, maxHour, minRaceLength, maxRaceLength]);
+
+  const performanceRows = useMemo(() => {
+    const rows = performanceData?.rows ?? [];
+    const search = statsSearch.trim().toLowerCase();
+    if (!search) return rows;
+    return rows.filter((row) => row.label.toLowerCase().includes(search));
+  }, [performanceData, statsSearch]);
 
   const visibleRecommendations = useMemo(() => {
     const search = searchText.trim().toLowerCase();
@@ -577,84 +591,83 @@ export default function RecommendationsDashboard() {
       </div>
     </div>
 
-    <div className="mt-6 grid gap-4 lg:grid-cols-2">
+    <div className="mt-6">
       <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-base font-medium">Track Performance</CardTitle>
-          <div className="text-xs text-muted-foreground">Recent races by track</div>
+        <CardHeader className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-base font-medium">
+                Performance Summary
+              </CardTitle>
+              <div className="text-xs text-muted-foreground">
+                {performanceData?.window.label ?? "Current + Previous Season"}
+              </div>
+            </div>
+            <Select
+              value={performanceView}
+              onValueChange={(value) =>
+                setPerformanceView(value as PerformanceView)
+              }
+            >
+              <SelectTrigger className="h-9 w-[220px]">
+                <SelectValue placeholder="Select view" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="series">Series scores</SelectItem>
+                <SelectItem value="track">Track scores</SelectItem>
+                <SelectItem value="combo">Series + Track scores</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <Input
+              value={statsSearch}
+              onChange={(event) => setStatsSearch(event.target.value)}
+              placeholder="Search series or track"
+              className="h-9 sm:max-w-[260px]"
+            />
+            <div className="text-xs text-muted-foreground">
+              {statsLoading
+                ? "Loading…"
+                : statsErr
+                  ? "Unable to load performance"
+                  : `${performanceRows.length} rows`}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {statsErr ? (
             <div className="text-sm text-muted-foreground">{statsErr}</div>
-          ) : trackStats.length === 0 ? (
+          ) : statsLoading ? (
             <div className="text-sm text-muted-foreground">
-              No track stats yet.
+              Loading performance summary…
+            </div>
+          ) : performanceRows.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              No data for this view in the selected window.
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Track</TableHead>
+                  <TableHead>Label</TableHead>
                   <TableHead className="text-right">Starts</TableHead>
                   <TableHead className="text-right">Avg Finish</TableHead>
                   <TableHead className="text-right">Inc/Race</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {trackStats.map((stat) => (
-                  <TableRow key={stat.trackId}>
-                    <TableCell className="font-medium">{stat.trackName}</TableCell>
+                {performanceRows.map((row) => (
+                  <TableRow key={row.key}>
+                    <TableCell className="font-medium">{row.label}</TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {stat.starts}
+                      {row.starts}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {stat.avgFinishPos.toFixed(1)}
+                      {row.avgFinish.toFixed(1)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {stat.incidentsPerRace.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-base font-medium">Series Performance</CardTitle>
-          <div className="text-xs text-muted-foreground">Recent races by series</div>
-        </CardHeader>
-        <CardContent>
-          {statsErr ? (
-            <div className="text-sm text-muted-foreground">{statsErr}</div>
-          ) : seriesStats.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No series stats yet.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Series</TableHead>
-                  <TableHead className="text-right">Starts</TableHead>
-                  <TableHead className="text-right">Avg Finish</TableHead>
-                  <TableHead className="text-right">Inc/Race</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {seriesStats.map((stat) => (
-                  <TableRow key={stat.seriesId}>
-                    <TableCell className="font-medium">{stat.seriesName}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {stat.starts}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {stat.avgFinishPos.toFixed(1)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {stat.incidentsPerRace.toFixed(2)}
+                      {row.incPerRace.toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -3,6 +3,7 @@ import { prisma } from "@/server/db/prisma";
 import { ingestCatalog } from "@/server/ingest/catalog";
 import { ingestSchedule } from "@/server/ingest/schedule";
 import { ingestMemberStats } from "@/server/ingest/memberStats";
+import { ingestMemberResults } from "@/server/ingest/memberResults";
 
 export const runtime = "nodejs";
 
@@ -41,6 +42,9 @@ export async function POST(req: NextRequest) {
 
   await ingestCatalog(account, { series: true, tracks: true });
   await ingestSchedule(account);
-  const summary = await ingestMemberStats(account, custId);
-  return NextResponse.json(summary);
+  const [statsSummary, resultsSummary] = await Promise.all([
+    ingestMemberStats(account, custId),
+    ingestMemberResults(account, custId),
+  ]);
+  return NextResponse.json({ ...statsSummary, resultsSummary });
 }

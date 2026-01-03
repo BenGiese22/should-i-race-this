@@ -62,3 +62,21 @@ export type TrackStatsResponse = {
 export type SeriesStatsResponse = {
   items: SeriesStat[];
 };
+
+export type PerformanceView = "series" | "track" | "combo";
+
+export type PerformanceRow = {
+  key: string;
+  label: string;
+  seriesId?: number;
+  trackId?: number;
+  starts: number;
+  avgFinish: number;
+  incPerRace: number;
+};
+
+export type PerformanceResponse = {
+  window: { seasonIds: number[]; label: string };
+  view: PerformanceView;
+  rows: PerformanceRow[];
+};

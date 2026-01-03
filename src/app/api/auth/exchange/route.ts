@@ -15,6 +15,7 @@ import { ingestMember } from "@/server/ingest/member";
 import { ingestCatalog } from "@/server/ingest/catalog";
 import { ingestSchedule } from "@/server/ingest/schedule";
 import { ingestMemberStats } from "@/server/ingest/memberStats";
+import { ingestMemberResults } from "@/server/ingest/memberResults";
 
 export const runtime = "nodejs";
 
@@ -194,6 +195,7 @@ export async function POST(req: NextRequest) {
       await ingestSchedule(account);
       await ingestMember(account, custId);
       await ingestMemberStats(account, custId);
+      await ingestMemberResults(account, custId);
     }
   } catch {
     // Best-effort member ingest to seed license data.

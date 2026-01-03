@@ -44,6 +44,7 @@ model Series {
   seasons      Season[]
   schedules    ScheduleEntry[]
   memberStats  MemberSeriesStat[]
+  memberRaceResults MemberRaceResult[]
 }
 
 model Track {
@@ -54,6 +55,7 @@ model Track {
   updatedAt  DateTime        @updatedAt
   schedules  ScheduleEntry[]
   memberStats MemberTrackStat[]
+  memberRaceResults MemberRaceResult[]
 }
 
 model Season {
@@ -65,6 +67,7 @@ model Season {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   schedules     ScheduleEntry[]
+  memberRaceResults MemberRaceResult[]
 }
 
 model ScheduleEntry {
@@ -128,6 +131,27 @@ model MemberSeriesStat {
   series Series @relation(fields: [seriesId], references: [id])
 
   @@unique([custId, seriesId])
+}
+
+model MemberRaceResult {
+  id        String   @id @default(cuid())
+  custId    Int
+  seasonId  Int
+  seriesId  Int
+  trackId   Int
+  finishPos Int
+  incidents Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id])
+  series Series @relation(fields: [seriesId], references: [id])
+  track  Track  @relation(fields: [trackId], references: [id])
+
+  @@index([custId, seasonId])
+  @@index([custId, seriesId])
+  @@index([custId, trackId])
+  @@index([custId, seasonId, seriesId, trackId])
 }
 
 model Settings {
