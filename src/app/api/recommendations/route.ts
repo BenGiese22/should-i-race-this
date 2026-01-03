@@ -9,7 +9,7 @@ import { scoreRace } from "@/lib/scoring/scoreRace";
 import type { GlobalStats, PersonalStats } from "@/lib/scoring/types";
 import { verifyJson, SESSION_COOKIE } from "@/lib/auth/signedCookie";
 import { prisma } from "@/server/db/prisma";
-import type { MemberLicense } from "@/generated/prisma";
+import type { MemberLicense } from "@prisma/client";
 
 const RISK_MODES: RiskMode[] = ["balanced", "irating_push", "sr_recovery"];
 function parseMode(value: string | null): RiskMode | null {
