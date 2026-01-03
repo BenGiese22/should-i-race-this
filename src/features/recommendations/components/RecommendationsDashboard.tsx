@@ -38,8 +38,12 @@ import type {
   RecommendationsResponse,
   RiskLevel,
   RiskMode,
+  SeriesStat,
+  TrackStat,
 } from "@/features/recommendations/types";
 import { getRecommendations } from "@/features/recommendations/data/getRecommendations";
+import { getSeriesStats } from "@/features/recommendations/data/getSeriesStats";
+import { getTrackStats } from "@/features/recommendations/data/getTrackStats";
 
 type SortKey =
   | "score"
@@ -131,12 +135,15 @@ function Bar({ label, value }: { label: string; value: number }) {
 export default function RecommendationsDashboard() {
   const [mode, setMode] = useState<RiskMode>("balanced");
   const [data, setData] = useState<RecommendationsResponse | null>(null);
+  const [trackStats, setTrackStats] = useState<TrackStat[]>([]);
+  const [seriesStats, setSeriesStats] = useState<SeriesStat[]>([]);
 
   const [selected, setSelected] = useState<Recommendation | null>(null);
   const [open, setOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [statsErr, setStatsErr] = useState<string | null>(null);
   const requestIdRef = useRef(0);
 
   const [sortKey, setSortKey] = useState<SortKey>(DEFAULT_SORT_KEY);
@@ -179,6 +186,32 @@ export default function RecommendationsDashboard() {
   useEffect(() => {
     fetchRecommendations(mode);
   }, [fetchRecommendations, mode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStats() {
+      setStatsErr(null);
+      try {
+        const [tracks, series] = await Promise.all([
+          getTrackStats(),
+          getSeriesStats(),
+        ]);
+        if (cancelled) return;
+        setTrackStats(tracks.items);
+        setSeriesStats(series.items);
+      } catch (error) {
+        if (cancelled) return;
+        const message =
+          error instanceof Error ? error.message : "Failed to load stats.";
+        setStatsErr(message);
+      }
+    }
+
+    loadStats();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const modeMeta = MODES.find((m) => m.value === mode)!;
 
@@ -535,14 +568,102 @@ export default function RecommendationsDashboard() {
             {searchText.trim() ? `Searching “${searchText.trim()}”` : "Search"}
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">
-          {baseItems.length === 0
-            ? "No sessions"
-            : visibleRecommendations.length === baseItems.length
-              ? `${baseItems.length} sessions`
-              : `${visibleRecommendations.length} of ${baseItems.length} sessions`}
-        </div>
+      <div className="text-xs text-muted-foreground">
+        {baseItems.length === 0
+          ? "No sessions"
+          : visibleRecommendations.length === baseItems.length
+            ? `${baseItems.length} sessions`
+            : `${visibleRecommendations.length} of ${baseItems.length} sessions`}
       </div>
+    </div>
+
+    <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <Card>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-base font-medium">Track Performance</CardTitle>
+          <div className="text-xs text-muted-foreground">Recent races by track</div>
+        </CardHeader>
+        <CardContent>
+          {statsErr ? (
+            <div className="text-sm text-muted-foreground">{statsErr}</div>
+          ) : trackStats.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              No track stats yet.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Track</TableHead>
+                  <TableHead className="text-right">Starts</TableHead>
+                  <TableHead className="text-right">Avg Finish</TableHead>
+                  <TableHead className="text-right">Inc/Race</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {trackStats.map((stat) => (
+                  <TableRow key={stat.trackId}>
+                    <TableCell className="font-medium">{stat.trackName}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {stat.starts}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {stat.avgFinishPos.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {stat.incidentsPerRace.toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-base font-medium">Series Performance</CardTitle>
+          <div className="text-xs text-muted-foreground">Recent races by series</div>
+        </CardHeader>
+        <CardContent>
+          {statsErr ? (
+            <div className="text-sm text-muted-foreground">{statsErr}</div>
+          ) : seriesStats.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              No series stats yet.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Series</TableHead>
+                  <TableHead className="text-right">Starts</TableHead>
+                  <TableHead className="text-right">Avg Finish</TableHead>
+                  <TableHead className="text-right">Inc/Race</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {seriesStats.map((stat) => (
+                  <TableRow key={stat.seriesId}>
+                    <TableCell className="font-medium">{stat.seriesName}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {stat.starts}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {stat.avgFinishPos.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {stat.incidentsPerRace.toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
 
       {/* Table Card */}
       <Card className="mt-6">

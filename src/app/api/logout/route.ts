@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revokeToken } from "@/lib/auth/iracingOAuth";
 import { SESSION_COOKIE, verifyJson } from "@/lib/auth/signedCookie";
+import { prisma } from "@/server/db/prisma";
 
 export const runtime = "nodejs";
 
 type Session = {
-  accessToken?: string;
+  iracing_cust_id: number;
 };
 
 export async function POST(req: NextRequest) {
@@ -23,15 +24,21 @@ export async function POST(req: NextRequest) {
   const sessionCookie = req.cookies.get(SESSION_COOKIE)?.value;
   if (sessionCookie) {
     const session = verifyJson<Session>(sessionCookie, sessionSecret);
-    if (session?.accessToken) {
-      try {
-        await revokeToken({
-          clientId,
-          clientSecret,
-          token: session.accessToken,
-        });
-      } catch {
-        // Best-effort revoke; continue logout.
+    const custId = Number(session?.iracing_cust_id);
+    if (Number.isFinite(custId)) {
+      const account = await prisma.iRacingAccount.findUnique({
+        where: { custId },
+      });
+      if (account?.accessToken) {
+        try {
+          await revokeToken({
+            clientId,
+            clientSecret,
+            token: account.accessToken,
+          });
+        } catch {
+          // Best-effort revoke; continue logout.
+        }
       }
     }
   }

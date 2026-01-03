@@ -1,5 +1,6 @@
 /** @jest-environment node */
 
+const { NextRequest } = require("next/server");
 const { GET, buildRecommendationId } = require("./route");
 
 describe("recommendations API", () => {
@@ -22,28 +23,23 @@ describe("recommendations API", () => {
   });
 
   it("returns 400 for invalid mode", async () => {
-    const prev = process.env.USE_MOCK_DATA;
-    process.env.USE_MOCK_DATA = "true";
-
     const response = await GET(
-      new Request("http://localhost/api/recommendations?mode=invalid")
+      new NextRequest("http://localhost/api/recommendations?mode=invalid")
     );
 
     expect(response.status).toBe(400);
-
-    process.env.USE_MOCK_DATA = prev;
   });
 
-  it("returns 501 when mock data is disabled", async () => {
-    const prev = process.env.USE_MOCK_DATA;
-    process.env.USE_MOCK_DATA = "false";
+  it("returns 401 when missing session", async () => {
+    const prev = process.env.SESSION_SECRET;
+    process.env.SESSION_SECRET = "test-secret";
 
     const response = await GET(
-      new Request("http://localhost/api/recommendations?mode=balanced")
+      new NextRequest("http://localhost/api/recommendations?mode=balanced")
     );
 
-    expect(response.status).toBe(501);
+    expect(response.status).toBe(401);
 
-    process.env.USE_MOCK_DATA = prev;
+    process.env.SESSION_SECRET = prev;
   });
 });

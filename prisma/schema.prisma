@@ -5,10 +5,135 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider   = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String?         @unique
+  iracingCustId  Int             @unique
+  iracingAccount IRacingAccount?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model IRacingAccount {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  custId               Int      @unique
+  accessToken          String
+  refreshToken         String?
+  accessTokenExpiresAt DateTime
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Series {
+  id           Int             @id
+  name         String
+  category     String
+  isFixedSetup Boolean?
+  isOpenSetup  Boolean?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  seasons      Season[]
+  schedules    ScheduleEntry[]
+  memberStats  MemberSeriesStat[]
+}
+
+model Track {
+  id         Int             @id
+  name       String
+  configName String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  schedules  ScheduleEntry[]
+  memberStats MemberTrackStat[]
+}
+
+model Season {
+  id            Int             @id
+  seriesId      Int
+  series        Series          @relation(fields: [seriesId], references: [id])
+  year          Int?
+  seasonQuarter Int?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  schedules     ScheduleEntry[]
+}
+
+model ScheduleEntry {
+  id                String   @id @default(cuid())
+  seasonId          Int
+  seriesId          Int
+  trackId           Int
+  week              Int
+  raceLengthMin     Int
+  timeSlotLocalHour Int
+  isFixedSetup      Boolean
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id])
+  series Series @relation(fields: [seriesId], references: [id])
+  track  Track  @relation(fields: [trackId], references: [id])
+
+  @@unique([seasonId, week, trackId, timeSlotLocalHour])
+}
+
+model MemberLicense {
+  id        String   @id @default(cuid())
+  custId    Int
+  category  String
+  sr        Float
+  irating   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([custId, category])
+}
+
+model MemberTrackStat {
+  id               String   @id @default(cuid())
+  custId           Int
+  trackId          Int
+  starts           Int
+  avgFinishPos     Float
+  incidentsPerRace Float
+  lastRaceAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  track Track @relation(fields: [trackId], references: [id])
+
+  @@unique([custId, trackId])
+}
+
+model MemberSeriesStat {
+  id               String   @id @default(cuid())
+  custId           Int
+  seriesId         Int
+  starts           Int
+  avgFinishPos     Float
+  incidentsPerRace Float
+  lastRaceAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  series Series @relation(fields: [seriesId], references: [id])
+
+  @@unique([custId, seriesId])
+}
+
+model Settings {
+  id             Int      @id @default(1)
+  activeSeasonId Int?
+  activeWeek     Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

@@ -36,3 +36,29 @@ export type RecommendationsResponse = {
   weekStartDate?: string;
   items: Recommendation[];
 };
+
+export type TrackStat = {
+  trackId: number;
+  trackName: string;
+  starts: number;
+  avgFinishPos: number;
+  incidentsPerRace: number;
+  lastRaceAt?: string | null;
+};
+
+export type SeriesStat = {
+  seriesId: number;
+  seriesName: string;
+  starts: number;
+  avgFinishPos: number;
+  incidentsPerRace: number;
+  lastRaceAt?: string | null;
+};
+
+export type TrackStatsResponse = {
+  items: TrackStat[];
+};
+
+export type SeriesStatsResponse = {
+  items: SeriesStat[];
+};

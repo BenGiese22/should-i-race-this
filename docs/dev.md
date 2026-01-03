@@ -11,4 +11,4 @@ They will be resolved upstream as the ecosystem migrates.
 
 
 ## Run Command
-npm run dev -- -p 8080 -H 0.0.0.0
+npm run dev -- -p 3000 -H 127.0.0.1

@@ -10,6 +10,11 @@ import {
   TRANSIENT_COOKIE,
   verifyJson,
 } from "@/lib/auth/signedCookie";
+import { prisma } from "@/server/db/prisma";
+import { ingestMember } from "@/server/ingest/member";
+import { ingestCatalog } from "@/server/ingest/catalog";
+import { ingestSchedule } from "@/server/ingest/schedule";
+import { ingestMemberStats } from "@/server/ingest/memberStats";
 
 export const runtime = "nodejs";
 
@@ -18,7 +23,6 @@ type Session = {
   iracing_cust_id: string | number;
   iracing_name: string;
   expiresAt: number;
-  accessToken?: string;
 };
 
 const TRANSIENT_TTL_MS = 10 * 60 * 1000;
@@ -142,8 +146,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  console.log("iRacing profile response:", profileResp.data);
-
   const { iracingCustId, iracingName } = extractProfileFields(profileResp.data);
   if (!iracingCustId || !iracingName) {
     return NextResponse.json(
@@ -154,11 +156,53 @@ export async function POST(req: NextRequest) {
 
   const expiresIn = tokens.expires_in ?? 3600;
   const expiresAt = Date.now() + expiresIn * 1000;
+  const custId = Number(iracingCustId);
+  if (!Number.isFinite(custId)) {
+    return NextResponse.json(
+      { error: "Invalid cust_id from profile", details: profileResp.data },
+      { status: 400 }
+    );
+  }
+
+  const user = await prisma.user.upsert({
+    where: { iracingCustId: custId },
+    update: {},
+    create: { iracingCustId: custId },
+  });
+
+  await prisma.iRacingAccount.upsert({
+    where: { custId },
+    update: {
+      userId: user.id,
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token ?? null,
+      accessTokenExpiresAt: new Date(expiresAt),
+    },
+    create: {
+      userId: user.id,
+      custId,
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token ?? null,
+      accessTokenExpiresAt: new Date(expiresAt),
+    },
+  });
+
+  try {
+    const account = await prisma.iRacingAccount.findUnique({ where: { custId } });
+    if (account) {
+      await ingestCatalog(account, { series: true, tracks: true });
+      await ingestSchedule(account);
+      await ingestMember(account, custId);
+      await ingestMemberStats(account, custId);
+    }
+  } catch {
+    // Best-effort member ingest to seed license data.
+  }
+
   const sessionPayload: Session = {
-    iracing_cust_id: iracingCustId,
-    iracing_name: iracingName,
+    iracing_cust_id: custId,
+    iracing_name: String(iracingName),
     expiresAt,
-    accessToken: tokens.access_token,
   };
 
   const cookieValue = signJson(sessionPayload, sessionSecret);
