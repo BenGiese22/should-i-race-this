@@ -128,7 +128,18 @@ export async function GET(request: NextRequest) {
     } satisfies RecommendationsResponse);
   }
 
-  const entries = await prisma.scheduleEntry.findMany({
+  type ScheduleEntryWithSeriesTrack = {
+    seriesId: number;
+    trackId: number;
+    raceLengthMin: number;
+    timeSlotLocalHour: number;
+    isFixedSetup: boolean;
+    series: { name: string; category: string };
+    track: { name: string };
+  };
+
+  const entries: ScheduleEntryWithSeriesTrack[] =
+    await prisma.scheduleEntry.findMany({
     where: { seasonId: activeSeasonId, week: activeWeek },
     include: { series: true, track: true },
     orderBy: { seriesId: "asc" },
