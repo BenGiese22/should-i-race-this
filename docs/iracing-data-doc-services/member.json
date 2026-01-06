@@ -1,0 +1,80 @@
+{
+  "awards": {
+    "link": "https://members-ng.iracing.com/data/member/awards",
+    "parameters": {
+      "cust_id": {
+        "type": "number",
+        "note": "Defaults to the authenticated member."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "award_instances": {
+    "link": "https://members-ng.iracing.com/data/member/award_instances",
+    "parameters": {
+      "cust_id": {
+        "type": "number",
+        "note": "Defaults to the authenticated member."
+      },
+      "award_id": {
+        "type": "number",
+        "required": true
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "chart_data": {
+    "link": "https://members-ng.iracing.com/data/member/chart_data",
+    "parameters": {
+      "cust_id": {
+        "type": "number",
+        "note": "Defaults to the authenticated member."
+      },
+      "category_id": {
+        "type": "number",
+        "required": true,
+        "note": "1 - Oval; 2 - Road; 3 - Dirt oval; 4 - Dirt road"
+      },
+      "chart_type": {
+        "type": "number",
+        "required": true,
+        "note": "1 - iRating; 2 - TT Rating; 3 - License/SR"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "get": {
+    "link": "https://members-ng.iracing.com/data/member/get",
+    "parameters": {
+      "cust_ids": {
+        "type": "numbers",
+        "required": true,
+        "note": "?cust_ids=2,3,4"
+      },
+      "include_licenses": {
+        "type": "boolean"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "info": {
+    "link": "https://members-ng.iracing.com/data/member/info",
+    "note": "Always the authenticated member.",
+    "expirationSeconds": 900
+  },
+  "participation_credits": {
+    "link": "https://members-ng.iracing.com/data/member/participation_credits",
+    "note": "Always the authenticated member.",
+    "expirationSeconds": 900
+  },
+  "profile": {
+    "link": "https://members-ng.iracing.com/data/member/profile",
+    "parameters": {
+      "cust_id": {
+        "type": "number",
+        "note": "Defaults to the authenticated member."
+      }
+    },
+    "expirationSeconds": 900
+  }
+}

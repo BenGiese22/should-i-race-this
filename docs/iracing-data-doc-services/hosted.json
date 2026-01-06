@@ -1,0 +1,18 @@
+{
+  "combined_sessions": {
+    "link": "https://members-ng.iracing.com/data/hosted/combined_sessions",
+    "note": "Sessions that can be joined as a driver or spectator, and also includes non-league pending sessions for the user.",
+    "parameters": {
+      "package_id": {
+        "type": "number",
+        "note": "If set, return only sessions using this car or track package ID."
+      }
+    },
+    "expirationSeconds": 60
+  },
+  "sessions": {
+    "link": "https://members-ng.iracing.com/data/hosted/sessions",
+    "note": "Sessions that can be joined as a driver. Without spectator and non-league pending sessions for the user.",
+    "expirationSeconds": 60
+  }
+}

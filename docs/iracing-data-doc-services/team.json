@@ -1,0 +1,21 @@
+{
+  "get": {
+    "link": "https://members-ng.iracing.com/data/team/get",
+    "parameters": {
+      "team_id": {
+        "type": "number",
+        "required": true
+      },
+      "include_licenses": {
+        "type": "boolean",
+        "note": "For faster responses, only request when necessary."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "membership": {
+    "link": "https://members-ng.iracing.com/data/team/membership",
+    "note": "Results for the authenticated member, if any.",
+    "expirationSeconds": 900
+  }
+}

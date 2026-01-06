@@ -1,0 +1,6 @@
+{
+  "get": {
+    "link": "https://members-ng.iracing.com/data/carclass/get",
+    "expirationSeconds": 900
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "categories": {
+    "link": "https://members-ng.iracing.com/data/constants/categories",
+    "note": "Constant; returned directly as an array of objects",
+    "expirationSeconds": 900
+  },
+  "divisions": {
+    "link": "https://members-ng.iracing.com/data/constants/divisions",
+    "note": "Constant; returned directly as an array of objects",
+    "expirationSeconds": 900
+  },
+  "event_types": {
+    "link": "https://members-ng.iracing.com/data/constants/event_types",
+    "note": "Constant; returned directly as an array of objects",
+    "expirationSeconds": 900
+  }
+}

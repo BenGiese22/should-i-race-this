@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-racing-white text-racing-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-racing-red hover:bg-racing-red/90 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-racing-gray-200 hover:bg-racing-gray-300 text-racing-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-racing-gray-200 p-6;
+  }
+  
+  .racing-gradient {
+    @apply bg-gradient-to-r from-racing-red via-racing-blue to-racing-green;
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "cust_league_sessions": {
+    "link": "https://members-ng.iracing.com/data/league/cust_league_sessions",
+    "parameters": {
+      "mine": {
+        "type": "boolean",
+        "note": "If true, return only sessions created by this user."
+      },
+      "package_id": {
+        "type": "number",
+        "note": "If set, return only sessions using this car or track package ID."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "directory": {
+    "link": "https://members-ng.iracing.com/data/league/directory",
+    "parameters": {
+      "search": {
+        "type": "string",
+        "note": "Will search against league name, description, owner, and league ID."
+      },
+      "tag": {
+        "type": "string",
+        "note": "One or more tags, comma-separated."
+      },
+      "restrict_to_member": {
+        "type": "boolean",
+        "note": "If true include only leagues for which customer is a member."
+      },
+      "restrict_to_recruiting": {
+        "type": "boolean",
+        "note": "If true include only leagues which are recruiting."
+      },
+      "restrict_to_friends": {
+        "type": "boolean",
+        "note": "If true include only leagues owned by a friend."
+      },
+      "restrict_to_watched": {
+        "type": "boolean",
+        "note": "If true include only leagues owned by a watched member."
+      },
+      "minimum_roster_count": {
+        "type": "number",
+        "note": "If set include leagues with at least this number of members."
+      },
+      "maximum_roster_count": {
+        "type": "number",
+        "note": "If set include leagues with no more than this number of members."
+      },
+      "lowerbound": {
+        "type": "number",
+        "note": "First row of results to return.  Defaults to 1."
+      },
+      "upperbound": {
+        "type": "number",
+        "note": "Last row of results to return. Defaults to lowerbound + 39."
+      },
+      "sort": {
+        "type": "string",
+        "note": "One of relevance, leaguename, displayname, rostercount. displayname is owners's name. Defaults to relevance."
+      },
+      "order": {
+        "type": "string",
+        "note": "One of asc or desc.  Defaults to asc."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "get": {
+    "link": "https://members-ng.iracing.com/data/league/get",
+    "parameters": {
+      "league_id": {
+        "type": "number",
+        "required": true
+      },
+      "include_licenses": {
+        "type": "boolean",
+        "note": "For faster responses, only request when necessary."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "get_points_systems": {
+    "link": "https://members-ng.iracing.com/data/league/get_points_systems",
+    "parameters": {
+      "league_id": {
+        "type": "number",
+        "required": true
+      },
+      "season_id": {
+        "type": "number",
+        "note": "If included and the season is using custom points (points_system_id:2) then the custom points option is included in the returned list. Otherwise the custom points option is not returned."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "membership": {
+    "link": "https://members-ng.iracing.com/data/league/membership",
+    "parameters": {
+      "cust_id": {
+        "type": "number",
+        "note": "If different from the authenticated member, the following restrictions apply: - Caller cannot be on requested customer's block list or an empty list will result; - Requested customer cannot have their online activity preference set to hidden or an empty list will result; - Only leagues for which the requested customer is an admin and the league roster is not private are returned."
+      },
+      "include_league": {
+        "type": "boolean"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "roster": {
+    "link": "https://members-ng.iracing.com/data/league/roster",
+    "parameters": {
+      "league_id": {
+        "type": "number",
+        "required": true
+      },
+      "include_licenses": {
+        "type": "boolean",
+        "note": "For faster responses, only request when necessary."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "seasons": {
+    "link": "https://members-ng.iracing.com/data/league/seasons",
+    "parameters": {
+      "league_id": {
+        "type": "number",
+        "required": true
+      },
+      "retired": {
+        "type": "boolean",
+        "note": "If true include seasons which are no longer active."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "season_standings": {
+    "link": "https://members-ng.iracing.com/data/league/season_standings",
+    "parameters": {
+      "league_id": {
+        "type": "number",
+        "required": true
+      },
+      "season_id": {
+        "type": "number",
+        "required": true
+      },
+      "car_class_id": {
+        "type": "number"
+      },
+      "car_id": {
+        "type": "number",
+        "note": "If car_class_id is included then the standings are for the car in that car class, otherwise they are for the car across car classes."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "season_sessions": {
+    "link": "https://members-ng.iracing.com/data/league/season_sessions",
+    "parameters": {
+      "league_id": {
+        "type": "number",
+        "required": true
+      },
+      "season_id": {
+        "type": "number",
+        "required": true
+      },
+      "results_only": {
+        "type": "boolean",
+        "note": "If true include only sessions for which results are available."
+      }
+    },
+    "expirationSeconds": 900
+  }
+}

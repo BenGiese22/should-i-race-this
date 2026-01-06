@@ -1,0 +1,13 @@
+{
+  "assets": {
+    "link": "https://members-ng.iracing.com/data/track/assets",
+    "note": [
+      "image paths are relative to https://images-static.iracing.com/"
+    ],
+    "expirationSeconds": 900
+  },
+  "get": {
+    "link": "https://members-ng.iracing.com/data/track/get",
+    "expirationSeconds": 900
+  }
+}

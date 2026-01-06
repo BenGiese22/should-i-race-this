@@ -1,0 +1,71 @@
+{
+  "assets": {
+    "link": "https://members-ng.iracing.com/data/series/assets",
+    "note": [
+      "image paths are relative to https://images-static.iracing.com/"
+    ],
+    "expirationSeconds": 900
+  },
+  "get": {
+    "link": "https://members-ng.iracing.com/data/series/get",
+    "expirationSeconds": 900
+  },
+  "past_seasons": {
+    "link": "https://members-ng.iracing.com/data/series/past_seasons",
+    "note": "Get all seasons for a series. Filter list by official:true for seasons with standings.",
+    "parameters": {
+      "series_id": {
+        "type": "number",
+        "required": true
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "seasons": {
+    "link": "https://members-ng.iracing.com/data/series/seasons",
+    "parameters": {
+      "include_series": {
+        "type": "boolean"
+      },
+      "season_year": {
+        "type": "number",
+        "note": "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned."
+      },
+      "season_quarter": {
+        "type": "number",
+        "note": "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "season_list": {
+    "link": "https://members-ng.iracing.com/data/series/season_list",
+    "parameters": {
+      "include_series": {
+        "type": "boolean"
+      },
+      "season_year": {
+        "type": "number"
+      },
+      "season_quarter": {
+        "type": "number"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "season_schedule": {
+    "link": "https://members-ng.iracing.com/data/series/season_schedule",
+    "parameters": {
+      "season_id": {
+        "type": "number",
+        "required": true
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "stats_series": {
+    "link": "https://members-ng.iracing.com/data/series/stats_series",
+    "note": "To get series and seasons for which standings should be available, filter the list by official: true.",
+    "expirationSeconds": 900
+  }
+}

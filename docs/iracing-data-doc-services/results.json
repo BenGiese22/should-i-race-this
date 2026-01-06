@@ -1,0 +1,205 @@
+{
+  "get": {
+    "link": "https://members-ng.iracing.com/data/results/get",
+    "note": "Get the results of a subsession, if authorized to view them. series_logo image paths are relative to https://images-static.iracing.com/img/logos/series/",
+    "parameters": {
+      "subsession_id": {
+        "type": "number",
+        "required": true
+      },
+      "include_licenses": {
+        "type": "boolean"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "event_log": {
+    "link": "https://members-ng.iracing.com/data/results/event_log",
+    "parameters": {
+      "subsession_id": {
+        "type": "number",
+        "required": true
+      },
+      "simsession_number": {
+        "type": "number",
+        "required": true,
+        "note": "The main event is 0; the preceding event is -1, and so on."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "lap_chart_data": {
+    "link": "https://members-ng.iracing.com/data/results/lap_chart_data",
+    "parameters": {
+      "subsession_id": {
+        "type": "number",
+        "required": true
+      },
+      "simsession_number": {
+        "type": "number",
+        "required": true,
+        "note": "The main event is 0; the preceding event is -1, and so on."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "lap_data": {
+    "link": "https://members-ng.iracing.com/data/results/lap_data",
+    "parameters": {
+      "subsession_id": {
+        "type": "number",
+        "required": true
+      },
+      "simsession_number": {
+        "type": "number",
+        "required": true,
+        "note": "The main event is 0; the preceding event is -1, and so on."
+      },
+      "cust_id": {
+        "type": "number",
+        "note": "Required if the subsession was a single-driver event. Optional for team events. If omitted for a team event then the laps driven by all the team's drivers will be included."
+      },
+      "team_id": {
+        "type": "number",
+        "note": "Required if the subsession was a team event."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "search_hosted": {
+    "link": "https://members-ng.iracing.com/data/results/search_hosted",
+    "note": "Hosted and league sessions.  Maximum time frame of 90 days. Results split into one or more files with chunks of results. For scraping results the most effective approach is to keep track of the maximum end_time found during a search then make the subsequent call using that date/time as the finish_range_begin and skip any subsessions that are duplicated.  Results are ordered by subsessionid which is a proxy for start time. Requires one of: start_range_begin, finish_range_begin. Requires one of: cust_id, team_id, host_cust_id, session_name.",
+    "parameters": {
+      "start_range_begin": {
+        "type": "string",
+        "note": "Session start times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\"."
+      },
+      "start_range_end": {
+        "type": "string",
+        "note": "ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if start_range_begin is less than 90 days in the past."
+      },
+      "finish_range_begin": {
+        "type": "string",
+        "note": "Session finish times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\"."
+      },
+      "finish_range_end": {
+        "type": "string",
+        "note": "ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past."
+      },
+      "cust_id": {
+        "type": "number",
+        "note": "The participant's customer ID. Ignored if team_id is supplied."
+      },
+      "team_id": {
+        "type": "number",
+        "note": "The team ID to search for. Takes priority over cust_id if both are supplied."
+      },
+      "host_cust_id": {
+        "type": "number",
+        "note": "The host's customer ID."
+      },
+      "session_name": {
+        "type": "string",
+        "note": "Part or all of the session's name."
+      },
+      "league_id": {
+        "type": "number",
+        "note": "Include only results for the league with this ID."
+      },
+      "league_season_id": {
+        "type": "number",
+        "note": "Include only results for the league season with this ID."
+      },
+      "car_id": {
+        "type": "number",
+        "note": "One of the cars used by the session."
+      },
+      "track_id": {
+        "type": "number",
+        "note": "The ID of the track used by the session."
+      },
+      "category_ids": {
+        "type": "numbers",
+        "note": "Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "search_series": {
+    "link": "https://members-ng.iracing.com/data/results/search_series",
+    "note": "Official series.  Maximum time frame of 90 days. Results split into one or more files with chunks of results. For scraping results the most effective approach is to keep track of the maximum end_time found during a search then make the subsequent call using that date/time as the finish_range_begin and skip any subsessions that are duplicated.  Results are ordered by subsessionid which is a proxy for start time but groups together multiple splits of a series when multiple series launch sessions at the same time. Requires at least one of: season_year and season_quarter, start_range_begin, finish_range_begin.",
+    "parameters": {
+      "season_year": {
+        "type": "number",
+        "note": "Required when using season_quarter."
+      },
+      "season_quarter": {
+        "type": "number",
+        "note": "Required when using season_year."
+      },
+      "start_range_begin": {
+        "type": "string",
+        "note": "Session start times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\"."
+      },
+      "start_range_end": {
+        "type": "string",
+        "note": "ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if start_range_begin is less than 90 days in the past."
+      },
+      "finish_range_begin": {
+        "type": "string",
+        "note": "Session finish times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\"."
+      },
+      "finish_range_end": {
+        "type": "string",
+        "note": "ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past."
+      },
+      "cust_id": {
+        "type": "number",
+        "note": "Include only sessions in which this customer participated. Ignored if team_id is supplied."
+      },
+      "team_id": {
+        "type": "number",
+        "note": "Include only sessions in which this team participated. Takes priority over cust_id if both are supplied."
+      },
+      "series_id": {
+        "type": "number",
+        "note": "Include only sessions for series with this ID."
+      },
+      "race_week_num": {
+        "type": "number",
+        "note": "Include only sessions with this race week number."
+      },
+      "official_only": {
+        "type": "boolean",
+        "note": "If true, include only sessions earning championship points. Defaults to all."
+      },
+      "event_types": {
+        "type": "numbers",
+        "note": "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5"
+      },
+      "category_ids": {
+        "type": "numbers",
+        "note": "License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4"
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "season_results": {
+    "link": "https://members-ng.iracing.com/data/results/season_results",
+    "parameters": {
+      "season_id": {
+        "type": "number",
+        "required": true
+      },
+      "event_type": {
+        "type": "number",
+        "note": "Retrict to one event type: 2 - Practice; 3 - Qualify; 4 - Time Trial; 5 - Race"
+      },
+      "race_week_num": {
+        "type": "number",
+        "note": "The first race week of a season is 0."
+      }
+    },
+    "expirationSeconds": 900
+  }
+}

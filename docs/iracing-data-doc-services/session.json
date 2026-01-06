@@ -1,0 +1,12 @@
+{
+  "reg_drivers_list": {
+    "link": "https://members-ng.iracing.com/data/session/reg_drivers_list",
+    "parameters": {
+      "subsession_id": {
+        "type": "number",
+        "required": true
+      }
+    },
+    "expirationSeconds": 60
+  }
+}

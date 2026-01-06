@@ -1,0 +1,35 @@
+{
+  "countries": {
+    "link": "https://members-ng.iracing.com/data/lookup/countries",
+    "expirationSeconds": 900
+  },
+  "drivers": {
+    "link": "https://members-ng.iracing.com/data/lookup/drivers",
+    "parameters": {
+      "search_term": {
+        "type": "string",
+        "required": true,
+        "note": "A cust_id or partial name for which to search."
+      },
+      "league_id": {
+        "type": "number",
+        "note": "Narrow the search to the roster of the given league."
+      }
+    },
+    "expirationSeconds": 900
+  },
+  "flairs": {
+    "link": "https://members-ng.iracing.com/data/lookup/flairs",
+    "note": "Icons are from https://github.com/lipis/flag-icons/",
+    "expirationSeconds": 900
+  },
+  "get": {
+    "link": "https://members-ng.iracing.com/data/lookup/get",
+    "note": "?weather=weather_wind_speed_units&weather=weather_wind_speed_max&weather=weather_wind_speed_min&licenselevels=licenselevels",
+    "expirationSeconds": 900
+  },
+  "licenses": {
+    "link": "https://members-ng.iracing.com/data/lookup/licenses",
+    "expirationSeconds": 900
+  }
+}

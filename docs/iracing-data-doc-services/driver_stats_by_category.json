@@ -1,0 +1,26 @@
+{
+  "oval": {
+    "link": "https://members-ng.iracing.com/data/driver_stats_by_category/oval",
+    "expirationSeconds": 900
+  },
+  "sports_car": {
+    "link": "https://members-ng.iracing.com/data/driver_stats_by_category/sports_car",
+    "expirationSeconds": 900
+  },
+  "formula_car": {
+    "link": "https://members-ng.iracing.com/data/driver_stats_by_category/formula_car",
+    "expirationSeconds": 900
+  },
+  "road": {
+    "link": "https://members-ng.iracing.com/data/driver_stats_by_category/road",
+    "expirationSeconds": 900
+  },
+  "dirt_oval": {
+    "link": "https://members-ng.iracing.com/data/driver_stats_by_category/dirt_oval",
+    "expirationSeconds": 900
+  },
+  "dirt_road": {
+    "link": "https://members-ng.iracing.com/data/driver_stats_by_category/dirt_road",
+    "expirationSeconds": 900
+  }
+}

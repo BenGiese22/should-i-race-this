@@ -1,0 +1,13 @@
+{
+  "member_season_results": {
+    "link": "https://members-ng.iracing.com/data/time_attack/member_season_results",
+    "note": "Results for the authenticated member, if any.",
+    "parameters": {
+      "ta_comp_season_id": {
+        "type": "number",
+        "required": true
+      }
+    },
+    "expirationSeconds": 900
+  }
+}
