@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Session Types</title>
+</head>
+<body>
+    <h1>Fix Session Types</h1>
+    <p>The session type mapping has been fixed. Now we need to re-sync to update the database.</p>
+    <p><strong>Event Type 5</strong> will now correctly be classified as <strong>"race"</strong> instead of "qualifying".</p>
+    
+    <button onclick="clearAndResync()" id="resyncBtn">🔄 Clear Data & Re-sync with Fixed Types</button>
+    <div id="result"></div>
+
+    <script>
+        async function clearAndResync() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('resyncBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '🔄 Re-syncing...';
+            resultDiv.innerHTML = 'Clearing old data and re-syncing with corrected session types...';
+            
+            try {
+                // Force a full re-sync which should re-process all the data with the new session type mapping
+                const response = await fetch('/api/data/sync?force=true', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Re-sync Complete!</h3>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        <p><strong>Races Processed:</strong> ${result.progress?.processedRaces || 0}</p>
+                        <p><strong>New Races:</strong> ${result.progress?.newRaces || 0}</p>
+                        <button onclick="checkSessionTypes()">Check Session Types Now</button>
+                        <button onclick="testAnalytics()">Test Analytics</button>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Re-sync Failed</h3>
+                        <p><strong>Error:</strong> ${result.message}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Clear Data & Re-sync with Fixed Types';
+            }
+        }
+
+        async function checkSessionTypes() {
+            try {
+                const response = await fetch('/api/debug/analytics-debug');
+                const result = await response.json();
+                
+                document.getElementById('result').innerHTML += `
+                    <h3>Updated Session Type Distribution:</h3>
+                    <ul>
+                        <li><strong>Practice:</strong> ${result.debug?.sessionTypeDistribution?.find(s => s.sessionType === 'practice')?.count || 0}</li>
+                        <li><strong>Qualifying:</strong> ${result.debug?.sessionTypeDistribution?.find(s => s.sessionType === 'qualifying')?.count || 0}</li>
+                        <li><strong>Race:</strong> ${result.debug?.sessionTypeDistribution?.find(s => s.sessionType === 'race')?.count || 0}</li>
+                        <li><strong>Time Trial:</strong> ${result.debug?.sessionTypeDistribution?.find(s => s.sessionType === 'time_trial')?.count || 0}</li>
+                    </ul>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<br>Session type check failed: ' + error.message;
+            }
+        }
+
+        async function testAnalytics() {
+            try {
+                const response = await fetch('/api/data/analytics?groupBy=series&sessionType=race');
+                const result = await response.json();
+                
+                document.getElementById('result').innerHTML += `
+                    <h3>Analytics Test (Race Sessions):</h3>
+                    <p><strong>Found:</strong> ${result.analytics?.length || 0} series with race data</p>
+                    ${result.analytics?.length > 0 ? '<p>✅ Analytics working!</p>' : '<p>❌ Still no analytics data</p>'}
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<br>Analytics test failed: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

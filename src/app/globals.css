@@ -28,4 +28,77 @@
   .racing-gradient {
     @apply bg-gradient-to-r from-racing-red via-racing-blue to-racing-green;
   }
+  
+  /* Racing-themed recommendation card styles with consistent spacing */
+  .racing-card {
+    @apply border-l-4 border-l-gray-300 hover:border-l-blue-500 transition-all duration-200;
+  }
+  
+  .racing-card:hover {
+    @apply shadow-xl transform scale-[1.01];
+  }
+  
+  /* Consistent badge styling with proper spacing */
+  .racing-category-badge {
+    @apply bg-blue-50 text-blue-700 border-blue-200 text-xs px-2 py-1;
+  }
+  
+  .racing-license-badge {
+    @apply bg-green-50 text-green-700 border-green-200 text-xs px-2 py-1;
+  }
+  
+  .racing-duration-badge {
+    @apply bg-orange-50 text-orange-700 border-orange-200 text-xs px-2 py-1;
+  }
+  
+  .racing-setup-badge {
+    @apply bg-purple-50 text-purple-700 border-purple-200 text-xs px-2 py-1;
+  }
+  
+  /* Racing flag animations */
+  @keyframes checkered-flag {
+    0% { background-position: 0 0; }
+    100% { background-position: 16px 16px; }
+  }
+  
+  .checkered-flag-animation {
+    animation: checkered-flag 2s linear infinite;
+  }
+  
+  /* Racing-themed progress bar enhancements */
+  .racing-progress-track {
+    @apply relative overflow-hidden;
+  }
+  
+  .racing-progress-track::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    transform: translateX(-100%);
+    animation: racing-shine 2s ease-in-out infinite;
+  }
+  
+  @keyframes racing-shine {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  /* Consistent spacing utilities */
+  .spacing-xs { @apply gap-2; }
+  .spacing-sm { @apply gap-3; }
+  .spacing-md { @apply gap-4; }
+  .spacing-lg { @apply gap-6; }
+  .spacing-xl { @apply gap-8; }
+  
+  /* Typography consistency */
+  .text-heading-xl { @apply text-2xl font-bold text-gray-900; }
+  .text-heading-lg { @apply text-lg font-semibold text-gray-900; }
+  .text-heading-md { @apply text-base font-medium text-gray-900; }
+  .text-body { @apply text-sm text-gray-700; }
+  .text-caption { @apply text-xs text-gray-600; }
+  
+  /* Mobile-first responsive utilities */
+  .mobile-stack { @apply flex flex-col sm:flex-row; }
+  .mobile-full { @apply w-full sm:w-auto; }
+  .mobile-center { @apply text-center sm:text-left; }
 }

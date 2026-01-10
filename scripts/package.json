@@ -1,0 +1,14 @@
+{
+  "name": "racing-analytics-scripts",
+  "version": "1.0.0",
+  "description": "Database management scripts for Racing Analytics Dashboard",
+  "scripts": {
+    "reset-db": "tsx reset-database.ts",
+    "reset-db:seed": "tsx reset-database.ts --seed",
+    "reset-db:force": "tsx reset-database.ts --confirm"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3",
+    "tsx": "^4.21.0"
+  }
+}

@@ -50,6 +50,10 @@ export interface PerformanceMetric {
   avgIncidents: number;
   raceCount: number;
   consistency: number;
+  // Additional fields for enhanced analysis
+  bestFinish?: number;
+  worstFinish?: number;
+  totalIncidents?: number;
 }
 
 export type GroupingType = 'series' | 'track' | 'series_track';

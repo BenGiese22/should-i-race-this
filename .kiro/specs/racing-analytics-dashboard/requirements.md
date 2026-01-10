@@ -28,6 +28,16 @@ The Racing Analytics Dashboard is a web application that helps iRacing users ans
 
 **User Story:** As a racing enthusiast, I want to securely authenticate with my iRacing account, so that I can access my personal racing data and analytics.
 
+**iRacing OAuth Configuration Notes:** 
+- `IRACING_CLIENT_SECRET` is optional and only required if explicitly issued by iRacing
+- Many iRacing OAuth applications are public clients that do not require a client secret
+- The system must handle both scenarios automatically
+
+**Development URL Requirements:**
+- The application MUST run on exactly `http://127.0.0.1:3000` during local development
+- This is required for OAuth redirect URI compatibility with iRacing's configuration
+- Port 3000 must be available and used exclusively for development
+
 #### Acceptance Criteria
 
 1. WHEN a user visits the landing page, THE Dashboard SHALL display a "Login with iRacing" button matching the provided design

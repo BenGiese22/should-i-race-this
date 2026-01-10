@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Run Real Sync</title>
+</head>
+<body>
+    <h1>Run Real Sync</h1>
+    <p>Database currently has 0 races. Let's sync the 193 races!</p>
+    <button onclick="runSync()" id="syncBtn">🚀 Run Real Sync (Force)</button>
+    <div id="result"></div>
+
+    <script>
+        async function runSync() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('syncBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Syncing...';
+            resultDiv.innerHTML = 'Running real sync with force=true...';
+            
+            try {
+                const response = await fetch('/api/data/sync?force=true', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Sync Successful!</h3>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        <p><strong>New Races Added:</strong> ${result.progress?.newRaces || 0}</p>
+                        <p><strong>Total Races Processed:</strong> ${result.progress?.processedRaces || 0}</p>
+                        <p><strong>Errors:</strong> ${result.progress?.errors?.length || 0}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                        <button onclick="checkDatabase()">Check Database Now</button>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Sync Failed</h3>
+                        <p><strong>Error:</strong> ${result.message}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Request Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Run Real Sync (Force)';
+            }
+        }
+
+        async function checkDatabase() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML += '<br><br>Checking database...';
+            
+            try {
+                const response = await fetch('/api/debug/db-check');
+                const result = await response.json();
+                
+                resultDiv.innerHTML += `
+                    <h3>Database Check After Sync:</h3>
+                    <p><strong>Total Races:</strong> ${result.database?.totalRaces || 0}</p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML += '<br>Database check failed: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

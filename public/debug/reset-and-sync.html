@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset & Sync</title>
+</head>
+<body>
+    <h1>Reset Sync Timestamp & Re-sync</h1>
+    <p>This will reset the sync timestamp and then force a fresh sync of all race data.</p>
+    
+    <button onclick="resetAndSync()" id="resetBtn">🔄 Reset & Sync</button>
+    <div id="result"></div>
+
+    <script>
+        async function resetAndSync() {
+            const resultDiv = document.getElementById('result');
+            const resetBtn = document.getElementById('resetBtn');
+            
+            resetBtn.disabled = true;
+            resetBtn.textContent = '🔄 Working...';
+            
+            try {
+                // Step 1: Reset sync timestamp
+                resultDiv.innerHTML = 'Step 1: Resetting sync timestamp...';
+                
+                const resetResponse = await fetch('/api/debug/reset-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const resetResult = await resetResponse.json();
+                console.log('Reset result:', resetResult);
+                
+                if (!resetResult.success) {
+                    throw new Error('Failed to reset sync timestamp: ' + resetResult.error);
+                }
+                
+                // Step 2: Now sync should work
+                resultDiv.innerHTML += '<br>Step 2: Starting fresh sync...';
+                
+                const syncResponse = await fetch('/api/data/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const syncResult = await syncResponse.json();
+                console.log('Sync result:', syncResult);
+                
+                if (syncResult.success) {
+                    const newRaces = syncResult.progress ? syncResult.progress.newRaces : (syncResult.syncStatus ? syncResult.syncStatus.totalRaces : 0);
+                    const totalRaces = syncResult.syncStatus ? syncResult.syncStatus.totalRaces : 0;
+                    
+                    resultDiv.innerHTML = '<div style="background: #d4edda; padding: 15px; margin: 10px 0; border-radius: 5px;">' +
+                        '<h3>✅ Reset & Sync Completed!</h3>' +
+                        '<p><strong>Records Added:</strong> ' + newRaces + '</p>' +
+                        '<p><strong>Total Records:</strong> ' + totalRaces + '</p>' +
+                        '<p><strong>Message:</strong> ' + syncResult.message + '</p>' +
+                        '<button onclick="testAnalytics()">🧪 Test Analytics</button>' +
+                        '<button onclick="window.open(\'/dashboard\', \'_blank\')">🏁 Open Dashboard</button>' +
+                        '</div>';
+                } else {
+                    resultDiv.innerHTML += '<div style="background: #f8d7da; padding: 15px; margin: 10px 0; border-radius: 5px;">' +
+                        '<h3>❌ Sync Failed</h3>' +
+                        '<p><strong>Error:</strong> ' + (syncResult.message || syncResult.error) + '</p>' +
+                        '<pre>' + JSON.stringify(syncResult, null, 2) + '</pre>' +
+                        '</div>';
+                }
+                
+            } catch (error) {
+                console.error('Reset & sync error:', error);
+                resultDiv.innerHTML = '<div style="background: #f8d7da; padding: 15px; margin: 10px 0; border-radius: 5px;">' +
+                    '<h3>❌ Error</h3>' +
+                    '<p>' + error.message + '</p>' +
+                    '</div>';
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = '🔄 Reset & Sync';
+            }
+        }
+
+        async function testAnalytics() {
+            try {
+                const response = await fetch('/api/data/analytics?groupBy=series&sessionType=race');
+                const result = await response.json();
+                
+                const raceCount = result.analytics ? result.analytics.length : 0;
+                
+                document.getElementById('result').innerHTML += '<div style="background: #e3f2fd; padding: 15px; margin: 10px 0; border-radius: 5px;">' +
+                    '<h4>🧪 Analytics Test Results</h4>' +
+                    '<p><strong>Series with Race Data:</strong> ' + raceCount + '</p>' +
+                    (raceCount > 0 ? 
+                        '<p>✅ <strong>Success!</strong> Your dashboard should now show race data properly.</p>' : 
+                        '<p>❌ Still no race data found</p>'
+                    ) +
+                    '</div>';
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<br>Analytics test failed: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

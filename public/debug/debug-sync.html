@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Sync Failure</title>
+</head>
+<body>
+    <h1>Debug Why Sync Is Failing</h1>
+    <p>You've clicked "Sync Race Data" many times but database still has 0 races.</p>
+    <p>Let's find out exactly where it's failing...</p>
+    
+    <button onclick="runDetailedDebug()" id="debugBtn">🔍 Run Detailed Debug</button>
+    <div id="result"></div>
+
+    <script>
+        async function runDetailedDebug() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('debugBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '🔍 Debugging...';
+            resultDiv.innerHTML = 'Running detailed sync debug...';
+            
+            try {
+                const response = await fetch('/api/debug/sync-detailed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Debug Complete - Found the Issue!</h3>
+                        <h4>Summary:</h4>
+                        <ul>
+                            <li><strong>Races from API:</strong> ${result.summary?.totalRacesFromAPI || 0}</li>
+                            <li><strong>New races to process:</strong> ${result.summary?.newRacesToProcess || 0}</li>
+                            <li><strong>Can process races:</strong> ${result.summary?.canProcessRaces ? 'Yes' : 'No'}</li>
+                            <li><strong>Can insert to database:</strong> ${result.summary?.canInsertToDatabase ? 'Yes' : 'No'}</li>
+                            <li><strong>Processing errors:</strong> ${result.summary?.processingErrors || 0}</li>
+                        </ul>
+                        <h4>Detailed Steps:</h4>
+                        <pre>${JSON.stringify(result.debugInfo, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Debug Found Errors</h3>
+                        <h4>Errors:</h4>
+                        <ul>
+                            ${result.debugInfo?.errors?.map(err => `<li>${err}</li>`).join('') || '<li>Unknown error</li>'}
+                        </ul>
+                        <h4>Full Debug Info:</h4>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Debug Request Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 Run Detailed Debug';
+            }
+        }
+    </script>
+</body>
+</html>

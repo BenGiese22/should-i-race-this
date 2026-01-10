@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendations Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏁 Recommendations Debug Tool</h1>
+        <p>This tool helps diagnose why you might not be seeing recommendations.</p>
+        
+        <button onclick="checkRecommendationsData()">Check Recommendations Data</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function checkRecommendationsData() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">Checking recommendations data...</div>';
+            
+            try {
+                const response = await fetch('/api/debug/recommendations-debug');
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch debug data');
+                }
+                
+                displayResults(data);
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = '<h2>📊 Recommendations Data Status</h2>';
+            
+            // Overall status
+            const canGenerate = data.recommendations.canGenerateRecommendations;
+            html += `<div class="section">
+                <h3>Overall Status</h3>
+                <div class="${canGenerate ? 'success' : 'warning'}">
+                    ${canGenerate ? '✅ Can generate recommendations' : '⚠️ Cannot generate recommendations - missing data'}
+                </div>
+            </div>`;
+            
+            // Data counts
+            html += `<div class="section">
+                <h3>Data Counts</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div>
+                        <strong>Your Race Results:</strong><br>
+                        <span class="count">${data.userRaceCount}</span>
+                        <div class="${data.userRaceCount > 0 ? 'success' : 'warning'}">
+                            ${data.userRaceCount > 0 ? '✅ Have race data' : '⚠️ No race data'}
+                        </div>
+                    </div>
+                    <div>
+                        <strong>Your Licenses:</strong><br>
+                        <span class="count">${data.userLicenses.length}</span>
+                        <div class="${data.userLicenses.length > 0 ? 'success' : 'warning'}">
+                            ${data.userLicenses.length > 0 ? '✅ Have licenses' : '⚠️ No license data'}
+                        </div>
+                    </div>
+                    <div>
+                        <strong>Current Schedule:</strong><br>
+                        <span class="count">${data.currentScheduleCount}</span>
+                        <div class="${data.currentScheduleCount > 0 ? 'success' : 'warning'}">
+                            ${data.currentScheduleCount > 0 ? '✅ Have current schedule' : '⚠️ No current schedule'}
+                        </div>
+                    </div>
+                    <div>
+                        <strong>Total Schedule Entries:</strong><br>
+                        <span class="count">${data.totalScheduleCount}</span>
+                        <div class="${data.totalScheduleCount > 0 ? 'success' : 'warning'}">
+                            ${data.totalScheduleCount > 0 ? '✅ Have schedule data' : '⚠️ No schedule data'}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            
+            // Requirements breakdown
+            html += `<div class="section">
+                <h3>Requirements Breakdown</h3>
+                <div class="${data.recommendations.needsRaceData ? 'warning' : 'success'}">
+                    ${data.recommendations.needsRaceData ? '⚠️ Need race data - sync your race history' : '✅ Have race data'}
+                </div>
+                <div class="${data.recommendations.needsLicenseData ? 'warning' : 'success'}">
+                    ${data.recommendations.needsLicenseData ? '⚠️ Need license data - refresh your profile' : '✅ Have license data'}
+                </div>
+                <div class="${data.recommendations.needsScheduleData ? 'warning' : 'success'}">
+                    ${data.recommendations.needsScheduleData ? '⚠️ Need current schedule data' : '✅ Have current schedule data'}
+                </div>
+            </div>`;
+            
+            // License details
+            if (data.userLicenses.length > 0) {
+                html += `<div class="section">
+                    <h3>Your Licenses</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">`;
+                data.userLicenses.forEach(license => {
+                    html += `<div class="info">
+                        <strong>${license.category.toUpperCase()}</strong><br>
+                        License: ${license.level.toUpperCase()}<br>
+                        iRating: ${license.irating}<br>
+                        Safety: ${license.safetyRating}
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            // Sample data
+            if (data.sampleRaces.length > 0) {
+                html += `<div class="section">
+                    <h3>Sample Race Results</h3>
+                    <div style="max-height: 200px; overflow-y: auto;">`;
+                data.sampleRaces.forEach(race => {
+                    html += `<div class="info" style="margin: 5px 0;">
+                        <strong>${race.seriesName}</strong> at ${race.trackName}<br>
+                        ${race.sessionType} - ${new Date(race.raceDate).toLocaleDateString()}
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            if (data.sampleSchedule.length > 0) {
+                html += `<div class="section">
+                    <h3>Sample Schedule Entries</h3>
+                    <div style="max-height: 200px; overflow-y: auto;">`;
+                data.sampleSchedule.forEach(entry => {
+                    html += `<div class="info" style="margin: 5px 0;">
+                        <strong>${entry.seriesName}</strong> at ${entry.trackName}<br>
+                        ${new Date(entry.weekStart).toLocaleDateString()} - ${new Date(entry.weekEnd).toLocaleDateString()}
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            // Next steps
+            html += `<div class="section">
+                <h3>Next Steps</h3>`;
+            
+            if (data.recommendations.needsRaceData) {
+                html += `<div class="warning">
+                    <strong>1. Sync Race Data:</strong><br>
+                    Go to the main dashboard and click "Sync Race Data" to import your iRacing race history.
+                </div>`;
+            }
+            
+            if (data.recommendations.needsLicenseData) {
+                html += `<div class="warning">
+                    <strong>2. Refresh Profile:</strong><br>
+                    Your license information needs to be fetched from iRacing. This usually happens during login.
+                </div>`;
+            }
+            
+            if (data.recommendations.needsScheduleData) {
+                html += `<div class="warning">
+                    <strong>3. Schedule Data:</strong><br>
+                    The current race schedule needs to be populated. This is typically done automatically but may need manual setup.
+                </div>`;
+            }
+            
+            if (data.recommendations.canGenerateRecommendations) {
+                html += `<div class="success">
+                    <strong>✅ Ready for Recommendations!</strong><br>
+                    You have all the required data. If you're still not seeing recommendations, there might be an issue with the scoring algorithm or filtering.
+                </div>`;
+            }
+            
+            html += `</div>`;
+            
+            // Raw data
+            html += `<div class="section">
+                <h3>Raw Debug Data</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>`;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

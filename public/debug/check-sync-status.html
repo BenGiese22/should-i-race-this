@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Sync Status</title>
+</head>
+<body>
+    <h1>Check Why Sync Won't Run</h1>
+    <p>Let's check if the sync thinks it doesn't need to run...</p>
+    
+    <button onclick="checkSyncStatus()" id="statusBtn">📊 Check Sync Status</button>
+    <button onclick="runForcedSync()" id="syncBtn">🚀 Force Sync (Bypass Checks)</button>
+    <div id="result"></div>
+
+    <script>
+        async function checkSyncStatus() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('statusBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '📊 Checking...';
+            resultDiv.innerHTML = 'Checking sync status...';
+            
+            try {
+                const response = await fetch('/api/data/sync', { method: 'GET' });
+                const result = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>Sync Status Check:</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📊 Check Sync Status';
+            }
+        }
+
+        async function runForcedSync() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('syncBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '🚀 Syncing...';
+            resultDiv.innerHTML = 'Running forced sync (bypassing all checks)...';
+            
+            try {
+                const response = await fetch('/api/data/sync?force=true', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Forced Sync Result:</h3>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        <p><strong>New Races:</strong> ${result.progress?.newRaces || 0}</p>
+                        <p><strong>Total Processed:</strong> ${result.progress?.processedRaces || 0}</p>
+                        <p><strong>Errors:</strong> ${result.progress?.errors?.length || 0}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                        <button onclick="checkDatabase()">Check Database Now</button>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Forced Sync Failed:</h3>
+                        <p><strong>Error:</strong> ${result.message}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Force Sync (Bypass Checks)';
+            }
+        }
+
+        async function checkDatabase() {
+            try {
+                const response = await fetch('/api/debug/db-check');
+                const result = await response.json();
+                
+                document.getElementById('result').innerHTML += `
+                    <h3>Database After Sync:</h3>
+                    <p><strong>Total Races:</strong> ${result.database?.totalRaces || 0}</p>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<br>Database check failed: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

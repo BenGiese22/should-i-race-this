@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Sync</title>
+</head>
+<body>
+    <h1>Force Re-sync Race Data</h1>
+    <button onclick="forceSync()">🔄 Force Sync (Ignore Cache)</button>
+    <div id="result"></div>
+
+    <script>
+        async function forceSync() {
+            console.log('Starting FORCE sync');
+            document.getElementById('result').innerHTML = 'Forcing re-sync of all race data...';
+            
+            try {
+                // Explicitly force sync with query parameter
+                const response = await fetch('/api/data/sync?force=true', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                console.log('Force sync response:', response.status);
+                const result = await response.json();
+                console.log('Force sync result:', result);
+                
+                document.getElementById('result').innerHTML = `
+                    <h3>Force Sync Result:</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                    
+                    ${result.success && result.progress ? `
+                        <div style="background: #d4edda; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                            <h4>✅ Sync Completed!</h4>
+                            <p><strong>New Races:</strong> ${result.progress.newRaces}</p>
+                            <p><strong>Total Races:</strong> ${result.syncStatus?.totalRaces || 0}</p>
+                            <button onclick="testAnalytics()">🧪 Test Analytics</button>
+                            <button onclick="window.open('/dashboard', '_blank')">🏁 Open Dashboard</button>
+                        </div>
+                    ` : ''}
+                `;
+                
+            } catch (error) {
+                console.error('Force sync error:', error);
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        async function testAnalytics() {
+            try {
+                const response = await fetch('/api/data/analytics?groupBy=series&sessionType=race');
+                const result = await response.json();
+                
+                const raceCount = result.analytics?.length || 0;
+                
+                document.getElementById('result').innerHTML += `
+                    <div style="background: #e3f2fd; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                        <h4>🧪 Analytics Test</h4>
+                        <p><strong>Series with Race Data:</strong> ${raceCount}</p>
+                        ${raceCount > 0 ? 
+                            '<p>✅ Success! Race data is now accessible.</p>' : 
+                            '<p>❌ Still no race data found.</p>'
+                        }
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<br>Analytics test failed: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

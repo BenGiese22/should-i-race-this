@@ -1,4 +1,5 @@
-import { pgTable, uuid, integer, varchar, timestamp, decimal, bigint, boolean, date, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, integer, varchar, timestamp, decimal, bigint, boolean, date, jsonb, index, unique } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 
 // Users table
@@ -14,29 +15,35 @@ export const users = pgTable('users', {
 // iRacing account tokens
 export const iracingAccounts = pgTable('iracing_accounts', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   accessToken: varchar('access_token').notNull(),
   refreshToken: varchar('refresh_token').notNull(),
   accessTokenExpiresAt: timestamp('access_token_expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Ensure one account per user
+  userIdUnique: unique().on(table.userId),
+}));
 
 // License information
 export const licenseClasses = pgTable('license_classes', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  category: varchar('category', { length: 20 }).notNull(), // 'oval', 'road', 'dirt_oval', 'dirt_road'
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  category: varchar('category', { length: 20 }).notNull(), // 'oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road'
   level: varchar('level', { length: 10 }).notNull(), // 'rookie', 'D', 'C', 'B', 'A', 'pro'
   safetyRating: decimal('safety_rating', { precision: 4, scale: 2 }).notNull(),
   irating: integer('irating').notNull(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Ensure one license per user per category
+  userCategoryUnique: unique().on(table.userId, table.category),
+}));
 
 // Race results with computed position delta
 export const raceResults = pgTable('race_results', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   subsessionId: bigint('subsession_id', { mode: 'number' }).notNull(),
   seriesId: integer('series_id').notNull(),
   seriesName: varchar('series_name', { length: 255 }).notNull(),
@@ -65,6 +72,9 @@ export const raceResults = pgTable('race_results', {
   dateIdx: index('idx_race_results_date').on(table.raceDate),
   seasonIdx: index('idx_race_results_season').on(table.seasonYear, table.seasonQuarter),
   userSeasonIdx: index('idx_race_results_user_season').on(table.userId, table.seasonYear, table.seasonQuarter),
+  subsessionIdx: index('idx_race_results_subsession').on(table.subsessionId),
+  // Ensure no duplicate results for same user in same subsession
+  userSubsessionUnique: unique().on(table.userId, table.subsessionId),
 }));
 
 // Current schedule cache
@@ -88,4 +98,38 @@ export const scheduleEntries = pgTable('schedule_entries', {
   // Indexes for performance
   seasonIdx: index('idx_schedule_entries_season').on(table.seasonYear, table.seasonQuarter, table.raceWeekNum),
   weekIdx: index('idx_schedule_entries_week').on(table.weekStart, table.weekEnd),
+  seriesTrackIdx: index('idx_schedule_entries_series_track').on(table.seriesId, table.trackId),
+  // Ensure no duplicate schedule entries
+  seriesTrackWeekUnique: unique().on(table.seriesId, table.trackId, table.seasonYear, table.seasonQuarter, table.raceWeekNum),
+}));
+
+// Define relationships
+export const usersRelations = relations(users, ({ one, many }) => ({
+  iracingAccount: one(iracingAccounts, {
+    fields: [users.id],
+    references: [iracingAccounts.userId],
+  }),
+  licenseClasses: many(licenseClasses),
+  raceResults: many(raceResults),
+}));
+
+export const iracingAccountsRelations = relations(iracingAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [iracingAccounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const licenseClassesRelations = relations(licenseClasses, ({ one }) => ({
+  user: one(users, {
+    fields: [licenseClasses.userId],
+    references: [users.id],
+  }),
+}));
+
+export const raceResultsRelations = relations(raceResults, ({ one }) => ({
+  user: one(users, {
+    fields: [raceResults.userId],
+    references: [users.id],
+  }),
 }));

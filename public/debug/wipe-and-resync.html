@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wipe Database & Re-sync</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; max-width: 800px; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .step { background-color: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007cba; }
+        button { padding: 10px 20px; margin: 10px 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-primary { background-color: #007cba; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .progress { margin: 20px 0; }
+        .loading { text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Wipe Database & Re-sync</h1>
+    
+    <div class="warning">
+        <h3>⚠️ Warning</h3>
+        <p>This will <strong>permanently delete</strong> all your current race data (193 records) and re-sync everything with the corrected session type logic.</p>
+        <p><strong>Benefits:</strong></p>
+        <ul>
+            <li>✅ All Event Type 5 sessions will be correctly classified as "race"</li>
+            <li>✅ Clean data with proper session types from the start</li>
+            <li>✅ Your dashboard will show actual race data</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>Step 1: Wipe Existing Data</h3>
+        <p>Delete all 193 existing race records</p>
+        <button id="wipeBtn" class="btn-danger" onclick="wipeDatabase()">🗑️ Wipe Database</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Re-sync with Corrected Logic</h3>
+        <p>Fetch and sync all race data with proper session type classification</p>
+        <button id="syncBtn" class="btn-primary" onclick="resyncData()" disabled>🔄 Re-sync Race Data</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Verify Results</h3>
+        <p>Check that race data is now properly classified and accessible</p>
+        <button id="verifyBtn" class="btn-success" onclick="verifyResults()" disabled>✅ Verify Results</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        let currentStep = 1;
+
+        async function wipeDatabase() {
+            const resultDiv = document.getElementById('result');
+            const wipeBtn = document.getElementById('wipeBtn');
+            
+            wipeBtn.disabled = true;
+            wipeBtn.textContent = '🗑️ Wiping...';
+            
+            resultDiv.innerHTML = '<div class="loading">Deleting all race data...</div>';
+            
+            try {
+                const response = await fetch('/api/debug/wipe-database', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = \`
+                        <div class="success">
+                            <h3>✅ Database Wiped Successfully</h3>
+                            <p><strong>Records Deleted:</strong> \${result.results.recordsDeleted}</p>
+                            <p>Ready to re-sync with corrected session type logic.</p>
+                        </div>
+                    \`;
+                    
+                    // Enable next step
+                    document.getElementById('syncBtn').disabled = false;
+                    currentStep = 2;
+                } else {
+                    resultDiv.innerHTML = \`
+                        <div class="error">
+                            <h3>❌ Wipe Failed</h3>
+                            <p><strong>Error:</strong> \${result.error}</p>
+                        </div>
+                    \`;
+                    wipeBtn.disabled = false;
+                    wipeBtn.textContent = '🗑️ Wipe Database';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = \`<div class="error">Error: \${error.message}</div>\`;
+                wipeBtn.disabled = false;
+                wipeBtn.textContent = '🗑️ Wipe Database';
+            }
+        }
+
+        async function resyncData() {
+            const resultDiv = document.getElementById('result');
+            const syncBtn = document.getElementById('syncBtn');
+            
+            syncBtn.disabled = true;
+            syncBtn.textContent = '🔄 Syncing...';
+            
+            resultDiv.innerHTML += '<div class="loading">Re-syncing race data with corrected session types...</div>';
+            
+            try {
+                const response = await fetch('/api/data/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML += \`
+                        <div class="success">
+                            <h3>✅ Re-sync Completed</h3>
+                            <p><strong>New Records Added:</strong> \${result.progress.newRaces}</p>
+                            <p><strong>Total Records:</strong> \${result.syncStatus.totalRaces}</p>
+                            <p><strong>Latest Race Date:</strong> \${new Date(result.syncStatus.latestRaceDate).toLocaleDateString()}</p>
+                        </div>
+                    \`;
+                    
+                    // Enable next step
+                    document.getElementById('verifyBtn').disabled = false;
+                    currentStep = 3;
+                } else {
+                    resultDiv.innerHTML += \`
+                        <div class="error">
+                            <h3>❌ Re-sync Failed</h3>
+                            <p><strong>Error:</strong> \${result.message || result.error}</p>
+                        </div>
+                    \`;
+                    syncBtn.disabled = false;
+                    syncBtn.textContent = '🔄 Re-sync Race Data';
+                }
+            } catch (error) {
+                resultDiv.innerHTML += \`<div class="error">Re-sync Error: \${error.message}</div>\`;
+                syncBtn.disabled = false;
+                syncBtn.textContent = '🔄 Re-sync Race Data';
+            }
+        }
+
+        async function verifyResults() {
+            const resultDiv = document.getElementById('result');
+            const verifyBtn = document.getElementById('verifyBtn');
+            
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = '✅ Verifying...';
+            
+            try {
+                // Test analytics endpoint for race data
+                const analyticsResponse = await fetch('/api/data/analytics?groupBy=series&sessionType=race');
+                const analyticsResult = await analyticsResponse.json();
+                
+                // Get session type distribution
+                const debugResponse = await fetch('/api/debug/analytics-debug');
+                const debugResult = await debugResponse.json();
+                
+                const raceCount = analyticsResult.analytics?.length || 0;
+                const sessionDistribution = debugResult.debug?.sessionTypeDistribution || [];
+                
+                const practiceCount = sessionDistribution.find(s => s.sessionType === 'practice')?.count || 0;
+                const qualifyingCount = sessionDistribution.find(s => s.sessionType === 'qualifying')?.count || 0;
+                const raceSessionCount = sessionDistribution.find(s => s.sessionType === 'race')?.count || 0;
+                const timeTrialCount = sessionDistribution.find(s => s.sessionType === 'time_trial')?.count || 0;
+                
+                resultDiv.innerHTML += \`
+                    <div class="success">
+                        <h3>🎉 Verification Complete!</h3>
+                        <p><strong>Analytics Working:</strong> Found \${raceCount} series with race data</p>
+                        
+                        <h4>Session Type Distribution:</h4>
+                        <ul>
+                            <li><strong>Practice:</strong> \${practiceCount}</li>
+                            <li><strong>Qualifying:</strong> \${qualifyingCount}</li>
+                            <li><strong>Race:</strong> \${raceSessionCount} 🎉</li>
+                            <li><strong>Time Trial:</strong> \${timeTrialCount}</li>
+                        </ul>
+                        
+                        <p>✅ <strong>Success!</strong> Your dashboard should now show race data properly.</p>
+                        <button onclick="window.open('/dashboard', '_blank')" class="btn-success">🏁 Open Dashboard</button>
+                    </div>
+                \`;
+                
+            } catch (error) {
+                resultDiv.innerHTML += \`<div class="error">Verification Error: \${error.message}</div>\`;
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = '✅ Verify Results';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+scripts/node_modules
 
 # testing
 /coverage
@@ -38,3 +39,15 @@ next-env.d.ts
 # drizzle
 /drizzle/*.sql
 /drizzle/meta/
+
+# test files and debugging
+test-*.html
+check-database.html
+*.har
+.cookies
+
+# temporary/old directories
+should-i-race-this-old/
+
+# API response samples (unless needed for reference)
+recommendations_road_response.json

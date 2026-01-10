@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Type Mapping Analysis</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .event-type { font-weight: bold; color: #0066cc; }
+        .session-type { padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        .practice { background-color: #e3f2fd; color: #1976d2; }
+        .qualifying { background-color: #fff3e0; color: #f57c00; }
+        .race { background-color: #e8f5e8; color: #388e3c; }
+        .time_trial { background-color: #fce4ec; color: #c2185b; }
+        .summary { background-color: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .loading { text-align: center; padding: 50px; }
+        .error { color: red; background-color: #ffebee; padding: 15px; border-radius: 5px; }
+        .sample-data { font-size: 12px; color: #666; }
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #f0f0f0; border: 1px solid #ddd; cursor: pointer; }
+        .tab.active { background: #007cba; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Event Type Mapping Analysis</h1>
+    <p>This shows both the official iRacing event types and your actual data mapping.</p>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('official')">Official iRacing Event Types</div>
+        <div class="tab" onclick="showTab('data')">Your Data Mapping</div>
+        <div class="tab" onclick="showTab('comparison')">Comparison & Recommendations</div>
+    </div>
+    
+    <button onclick="loadAllData()" id="loadBtn">📊 Load All Event Type Data</button>
+    <div id="result"></div>
+
+    <script>
+        let officialData = null;
+        let dataMapping = null;
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Show selected tab
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-content')?.classList.add('active');
+        }
+
+        async function loadAllData() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('loadBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '📊 Loading...';
+            resultDiv.innerHTML = '<div class="loading">Loading event type data...</div>';
+            
+            try {
+                // Load official event types
+                const officialResponse = await fetch('/api/debug/fetch-event-types');
+                const officialResult = await officialResponse.json();
+                
+                // Load data mapping
+                const dataResponse = await fetch('/api/debug/event-type-mapping');
+                const dataResult = await dataResponse.json();
+                
+                if (officialResult.success && dataResult.success) {
+                    officialData = officialResult;
+                    dataMapping = dataResult;
+                    displayAllData();
+                } else {
+                    resultDiv.innerHTML = \`
+                        <div class="error">
+                            <h3>❌ Failed to Load Data</h3>
+                            <p><strong>Official API Error:</strong> \${officialResult.error || 'Success'}</p>
+                            <p><strong>Data Mapping Error:</strong> \${dataResult.error || 'Success'}</p>
+                        </div>
+                    \`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = \`<div class="error">Error: \${error.message}</div>\`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📊 Load All Event Type Data';
+            }
+        }
+
+        function displayAllData() {
+            const html = \`
+                <div id="official-content" class="tab-content active">
+                    \${displayOfficialEventTypes()}
+                </div>
+                <div id="data-content" class="tab-content">
+                    \${displayDataMapping()}
+                </div>
+                <div id="comparison-content" class="tab-content">
+                    \${displayComparison()}
+                </div>
+            \`;
+            
+            document.getElementById('result').innerHTML = html;
+        }
+
+        function displayOfficialEventTypes() {
+            if (!officialData?.officialEventTypes) {
+                return '<p>No official event types data available</p>';
+            }
+
+            let html = \`
+                <h3>📋 Official iRacing Event Types</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event Type ID</th>
+                            <th>Event Type Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            \`;
+
+            officialData.officialEventTypes.forEach(eventType => {
+                html += \`
+                    <tr>
+                        <td class="event-type">\${eventType.event_type || eventType.id}</td>
+                        <td>\${eventType.event_type_name || eventType.name}</td>
+                        <td class="sample-data">\${eventType.description || 'N/A'}</td>
+                    </tr>
+                \`;
+            });
+
+            html += \`
+                    </tbody>
+                </table>
+            \`;
+
+            return html;
+        }
+
+        function displayDataMapping() {
+            if (!dataMapping?.analysis) {
+                return '<p>No data mapping available</p>';
+            }
+
+            const { eventTypeMappings, summary } = dataMapping.analysis;
+            
+            let html = \`
+                <div class="summary">
+                    <h3>📈 Your Data Summary</h3>
+                    <p><strong>Total Records:</strong> \${summary.totalRecords}</p>
+                    <p><strong>Unique Event Types:</strong> \${summary.uniqueEventTypes.join(', ')}</p>
+                    <p><strong>Current Session Type Distribution:</strong></p>
+                    <ul>
+                        \${Object.entries(summary.currentSessionTypeDistribution)
+                            .map(([type, count]) => \`<li><span class="session-type \${type}">\${type}</span>: \${count}</li>\`)
+                            .join('')}
+                    </ul>
+                </div>
+
+                <h3>🗺️ Your Data Event Type Mapping</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event Type ID</th>
+                            <th>Event Type Name</th>
+                            <th>Current Session Type</th>
+                            <th>Count</th>
+                            <th>Sample Series</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            \`;
+
+            // Sort event types numerically
+            const sortedEventTypes = Object.keys(eventTypeMappings)
+                .map(Number)
+                .sort((a, b) => a - b);
+
+            sortedEventTypes.forEach(eventTypeId => {
+                const mappings = eventTypeMappings[eventTypeId];
+                mappings.forEach((mapping, index) => {
+                    html += \`
+                        <tr>
+                            \${index === 0 ? \`<td rowspan="\${mappings.length}" class="event-type">\${eventTypeId}</td>\` : ''}
+                            <td>\${mapping.eventTypeName}</td>
+                            <td><span class="session-type \${mapping.currentSessionType}">\${mapping.currentSessionType}</span></td>
+                            <td>\${mapping.count}</td>
+                            <td class="sample-data">\${mapping.sampleSeriesNames.slice(0, 2).join(', ')}</td>
+                        </tr>
+                    \`;
+                });
+            });
+
+            html += \`
+                    </tbody>
+                </table>
+            \`;
+
+            return html;
+        }
+
+        function displayComparison() {
+            if (!officialData || !dataMapping) {
+                return '<p>Need both official and data mapping to compare</p>';
+            }
+
+            return \`
+                <div class="summary">
+                    <h3>🎯 Analysis & Recommendations</h3>
+                    <p>Based on the official iRacing API and your data:</p>
+                    <ul>
+                        <li><strong>Event Type 2:</strong> Practice sessions ✅</li>
+                        <li><strong>Event Type 3:</strong> Qualifying sessions ✅</li>
+                        <li><strong>Event Type 4:</strong> Time Trial sessions ✅</li>
+                        <li><strong>Event Type 5:</strong> Race sessions ✅</li>
+                    </ul>
+                    
+                    <h4>🔧 Action Items:</h4>
+                    <ol>
+                        <li>Update session type normalization to use official mappings</li>
+                        <li>Run the fix endpoint to correct existing database records</li>
+                        <li>Verify that Event Type 5 + "Race" → "race" classification</li>
+                        <li>Test analytics endpoint to confirm race data is accessible</li>
+                    </ol>
+                    
+                    <button onclick="fixSessionTypes()">🔧 Fix Session Types Now</button>
+                    <button onclick="testAnalytics()">🧪 Test Analytics</button>
+                </div>
+            \`;
+        }
+
+        async function fixSessionTypes() {
+            try {
+                const response = await fetch('/api/debug/fix-session-types', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(\`✅ Fixed \${result.results.updatedRecords} records!\`);
+                    // Reload data to show updated distribution
+                    loadAllData();
+                } else {
+                    alert(\`❌ Fix failed: \${result.error}\`);
+                }
+            } catch (error) {
+                alert(\`Error: \${error.message}\`);
+            }
+        }
+
+        async function testAnalytics() {
+            try {
+                const response = await fetch('/api/data/analytics?groupBy=series&sessionType=race');
+                const result = await response.json();
+                
+                alert(\`Analytics Test: Found \${result.analytics?.length || 0} series with race data\`);
+            } catch (error) {
+                alert(\`Analytics test failed: \${error.message}\`);
+            }
+        }
+
+        // Auto-load on page load
+        window.onload = () => loadAllData();
+    </script>
+</body>
+</html>

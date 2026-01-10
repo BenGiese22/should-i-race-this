@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refresh Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Refresh Profile & License Data</h1>
+        <p>This tool will refresh your license information from iRacing.</p>
+        
+        <button id="refreshBtn" onclick="refreshProfile()">Refresh Profile</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function refreshProfile() {
+            const resultsDiv = document.getElementById('results');
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = 'Refreshing...';
+            
+            resultsDiv.innerHTML = '<div class="info">Refreshing profile and license data from iRacing...</div>';
+            
+            try {
+                const response = await fetch('/api/auth/profile/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to refresh profile');
+                }
+                
+                let html = '<div class="success">✅ Profile refreshed successfully!</div>';
+                
+                if (data.user && data.user.licenseClasses) {
+                    html += '<div class="info"><h3>Your License Classes:</h3>';
+                    data.user.licenseClasses.forEach(license => {
+                        html += `<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                            <strong>${license.category.toUpperCase()}</strong><br>
+                            License: ${license.level.toUpperCase()}<br>
+                            iRating: ${license.irating}<br>
+                            Safety Rating: ${license.safetyRating}
+                        </div>`;
+                    });
+                    html += '</div>';
+                } else {
+                    html += '<div class="warning">⚠️ No license data returned. You may need to check your iRacing API access.</div>';
+                }
+                
+                html += '<div class="success">Now you can go back to the recommendations page and try again!</div>';
+                
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = 'Refresh Profile';
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

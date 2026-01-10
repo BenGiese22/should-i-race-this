@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Session Types Directly</title>
+</head>
+<body>
+    <h1>Fix Session Types in Database</h1>
+    <p>This will update the existing records in the database to use the correct session types.</p>
+    <p><strong>Event Type 5 + "Race"</strong> → Will be changed from "qualifying" to <strong>"race"</strong></p>
+    
+    <button onclick="fixSessionTypes()" id="fixBtn">🔧 Fix Session Types in Database</button>
+    <div id="result"></div>
+
+    <script>
+        async function fixSessionTypes() {
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('fixBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '🔧 Fixing...';
+            resultDiv.innerHTML = 'Updating session types in existing database records...';
+            
+            try {
+                const response = await fetch('/api/debug/fix-session-types', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const distribution = result.results.updatedDistribution;
+                    const practiceCount = distribution.find(d => d.sessionType === 'practice')?.count || 0;
+                    const qualifyingCount = distribution.find(d => d.sessionType === 'qualifying')?.count || 0;
+                    const raceCount = distribution.find(d => d.sessionType === 'race')?.count || 0;
+                    const timeTrialCount = distribution.find(d => d.sessionType === 'time_trial')?.count || 0;
+                    
+                    resultDiv.innerHTML = `
+                        <h3>✅ Session Types Fixed!</h3>
+                        <p><strong>Total Records:</strong> ${result.results.totalRecords}</p>
+                        <p><strong>Updated Records:</strong> ${result.results.updatedRecords}</p>
+                        <p><strong>Errors:</strong> ${result.results.errors}</p>
+                        
+                        <h4>New Session Type Distribution:</h4>
+                        <ul>
+                            <li><strong>Practice:</strong> ${practiceCount}</li>
+                            <li><strong>Qualifying:</strong> ${qualifyingCount}</li>
+                            <li><strong>Race:</strong> ${raceCount} 🎉</li>
+                            <li><strong>Time Trial:</strong> ${timeTrialCount}</li>
+                        </ul>
+                        
+                        <button onclick="testAnalytics()">Test Analytics Now</button>
+                        <button onclick="openDashboard()">Open Dashboard</button>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Fix Failed</h3>
+                        <p><strong>Error:</strong> ${result.error}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔧 Fix Session Types in Database';
+            }
+        }
+
+        async function testAnalytics() {
+            try {
+                const response = await fetch('/api/data/analytics?groupBy=series&sessionType=race');
+                const result = await response.json();
+                
+                document.getElementById('result').innerHTML += `
+                    <h3>Analytics Test (Race Sessions):</h3>
+                    <p><strong>Found:</strong> ${result.analytics?.length || 0} series with race data</p>
+                    ${result.analytics?.length > 0 ? 
+                        '<p>✅ Analytics working! Your dashboard should now show race data.</p>' : 
+                        '<p>❌ Still no analytics data</p>'
+                    }
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<br>Analytics test failed: ' + error.message;
+            }
+        }
+
+        function openDashboard() {
+            window.open('/dashboard', '_blank');
+        }
+    </script>
+</body>
+</html>

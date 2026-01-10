@@ -6,6 +6,24 @@ The Racing Analytics Dashboard is a sophisticated web application that integrate
 
 The system architecture emphasizes real-time data processing, secure authentication, and responsive user experience while handling complex analytics computations and large datasets from the iRacing ecosystem.
 
+## iRacing OAuth Configuration
+
+**IMPORTANT RULE: iRacing OAuth Client Secret**
+- `IRACING_CLIENT_SECRET` is **OPTIONAL** and only required if one is explicitly issued by iRacing
+- Many iRacing OAuth applications are configured as "public clients" and do NOT receive a client secret
+- The OAuth implementation automatically handles both cases:
+  - If `IRACING_CLIENT_SECRET` is provided in environment variables, it will be included in token requests
+  - If `IRACING_CLIENT_SECRET` is not provided, token requests will work without it (for public clients)
+- **This is the standard behavior for iRacing OAuth and should be referenced in all future implementations**
+
+**CRITICAL RULE: Development URL Requirements**
+- The application **MUST** run on exactly `http://127.0.0.1:3000` during local development
+- This is required because the iRacing OAuth redirect URI is configured as `http://127.0.0.1:3000/oauth/callback`
+- If the application runs on any other port (e.g., 3001, 3002) or host (e.g., localhost), the OAuth callback will fail
+- **Always ensure port 3000 is available before starting development**
+- If port 3000 is occupied, stop the conflicting process rather than using an alternative port
+- This rule applies to all local development and testing scenarios
+
 ## Technology Stack
 
 ### Frontend Framework
