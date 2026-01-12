@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth/hooks';
 import Image from 'next/image';
 import { Check, BarChart3, Search, LogOut } from 'lucide-react';
+import { IRacingLoginButton } from '@/components/ui/iracing-login-button';
 
 export default function Home() {
   const { user, loading, login, logout } = useAuth();
@@ -209,20 +210,12 @@ export default function Home() {
               Connect your iRacing account and start making data-driven decisions about which races to join.
             </p>
             
-            {/* Login Button with Image */}
-            <button 
+            {/* Login Button */}
+            <IRacingLoginButton 
               onClick={handleLogin}
-              className="inline-block hover:scale-105 transform transition-all duration-200 hover:shadow-2xl"
-            >
-              <Image
-                src="/login_with_iracing_button.png"
-                alt="Login with iRacing"
-                width={300}
-                height={60}
-                className="mx-auto rounded-lg"
-                priority
-              />
-            </button>
+              className="mx-auto"
+              size="lg"
+            />
             
             <div className="mt-6 flex items-center justify-center space-x-4 text-sm text-racing-gray-400">
               <div className="flex items-center">

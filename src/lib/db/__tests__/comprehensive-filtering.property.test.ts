@@ -19,8 +19,10 @@ jest.mock('../index', () => ({
   db: mockDb,
 }));
 
+import { SessionType, SessionTypeHelper } from '../../types/session';
+
 // Test data generators
-const sessionTypeArb = fc.constantFrom('practice', 'qualifying', 'time_trial', 'race');
+const sessionTypeArb = fc.constantFrom(...SessionTypeHelper.getAllTypes());
 const groupingTypeArb = fc.constantFrom('series', 'track', 'series_track');
 
 const raceResultArb = fc.record({

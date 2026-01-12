@@ -1,13 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecommendationCard } from '../RecommendationCard';
 import { ScoredOpportunity } from '@/lib/recommendations/types';
+import { LicenseLevel } from '@/lib/types/license';
 
 const mockRecommendation: ScoredOpportunity = {
   seriesId: 1,
   seriesName: 'Skip Barber Formula 2000',
   trackId: 101,
   trackName: 'Road Atlanta',
-  licenseRequired: 'D',
+  licenseRequired: LicenseLevel.D,
   category: 'road',
   seasonYear: 2024,
   seasonQuarter: 1,

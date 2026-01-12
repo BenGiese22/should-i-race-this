@@ -1,4 +1,5 @@
 import { RacingOpportunity, UserHistory, LicenseLevel, Category } from './types';
+import { LicenseHelper, LicenseLevel as CentralizedLicenseLevel } from '../types/license';
 
 /**
  * License-based filtering for racing recommendations
@@ -77,44 +78,20 @@ export class LicenseFilter {
       return false;
     }
 
-    // Get the highest license level in this category
-    const licenseHierarchy: Record<LicenseLevel, number> = {
-      'rookie': 0,
-      'D': 1,
-      'C': 2,
-      'B': 3,
-      'A': 4,
-      'pro': 5
-    };
-
+    // Get the highest license level in this category using centralized helper
     const highestUserLicense = userLicensesInCategory.reduce((highest, current) => {
-      const currentValue = licenseHierarchy[current.level];
-      const highestValue = licenseHierarchy[highest.level];
-      return currentValue > highestValue ? current : highest;
+      return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
     });
 
-    // Check if user's highest license level meets the requirement
-    return this.isLicenseLevelSufficient(highestUserLicense.level, opportunity.licenseRequired);
+    // Check if user's highest license level meets the requirement using centralized helper
+    return LicenseHelper.meetsRequirement(highestUserLicense.level, opportunity.licenseRequired);
   }
 
   /**
-   * Check if a user's license level is sufficient for the required level
-   * License hierarchy: rookie < D < C < B < A < pro
+   * Check if a user's license level is sufficient for the required level using centralized helper
    */
   private isLicenseLevelSufficient(userLevel: LicenseLevel, requiredLevel: LicenseLevel): boolean {
-    const licenseHierarchy: Record<LicenseLevel, number> = {
-      'rookie': 0,
-      'D': 1,
-      'C': 2,
-      'B': 3,
-      'A': 4,
-      'pro': 5
-    };
-
-    const userLevelValue = licenseHierarchy[userLevel];
-    const requiredLevelValue = licenseHierarchy[requiredLevel];
-
-    return userLevelValue >= requiredLevelValue;
+    return LicenseHelper.meetsRequirement(userLevel, requiredLevel);
   }
 
   /**
@@ -136,20 +113,9 @@ export class LicenseFilter {
       return null;
     }
 
-    // If multiple licenses in the same category, return the highest one
-    const licenseHierarchy: Record<LicenseLevel, number> = {
-      'rookie': 0,
-      'D': 1,
-      'C': 2,
-      'B': 3,
-      'A': 4,
-      'pro': 5
-    };
-
+    // If multiple licenses in the same category, return the highest one using centralized helper
     const highestLicense = userLicensesInCategory.reduce((highest, current) => {
-      const currentValue = licenseHierarchy[current.level];
-      const highestValue = licenseHierarchy[highest.level];
-      return currentValue > highestValue ? current : highest;
+      return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
     });
 
     return highestLicense.level;
@@ -170,21 +136,12 @@ export class LicenseFilter {
 
       if (!userLicense) {
         // If user has no license in this category, rookie series are "almost eligible"
-        return opportunity.licenseRequired === 'rookie';
+        return opportunity.licenseRequired === CentralizedLicenseLevel.ROOKIE;
       }
 
-      // Check if user is exactly one level below the requirement
-      const licenseHierarchy: Record<LicenseLevel, number> = {
-        'rookie': 0,
-        'D': 1,
-        'C': 2,
-        'B': 3,
-        'A': 4,
-        'pro': 5
-      };
-
-      const userLevelValue = licenseHierarchy[userLicense.level];
-      const requiredLevelValue = licenseHierarchy[opportunity.licenseRequired];
+      // Check if user is exactly one level below the requirement using centralized helper
+      const userLevelValue = LicenseHelper.getNumericValue(userLicense.level);
+      const requiredLevelValue = LicenseHelper.getNumericValue(opportunity.licenseRequired);
 
       // User is one level below the requirement
       return requiredLevelValue === userLevelValue + 1;
@@ -195,14 +152,12 @@ export class LicenseFilter {
    * Group opportunities by license requirement for display purposes
    */
   groupOpportunitiesByLicense(opportunities: RacingOpportunity[]): Record<LicenseLevel, RacingOpportunity[]> {
-    const grouped: Record<LicenseLevel, RacingOpportunity[]> = {
-      'rookie': [],
-      'D': [],
-      'C': [],
-      'B': [],
-      'A': [],
-      'pro': []
-    };
+    const grouped: Record<LicenseLevel, RacingOpportunity[]> = {};
+    
+    // Initialize with all license levels
+    LicenseHelper.getAllLevels().forEach(level => {
+      grouped[level] = [];
+    });
 
     opportunities.forEach(opportunity => {
       grouped[opportunity.licenseRequired].push(opportunity);
@@ -227,7 +182,7 @@ export class LicenseFilter {
     
     for (const license of userHistory.licenseClasses) {
       const existingLevel = categoryLicenses.get(license.category);
-      if (!existingLevel || this.isLicenseLevelSufficient(license.level, existingLevel)) {
+      if (!existingLevel || LicenseHelper.compare(license.level, existingLevel) > 0) {
         categoryLicenses.set(license.category, license.level);
       }
     }
@@ -303,19 +258,17 @@ export class LicenseFilter {
   }
 
   /**
-   * Get the next license level in the hierarchy
+   * Get the next license level in the hierarchy using centralized helper
    */
   private getNextLicenseLevel(currentLevel: LicenseLevel): LicenseLevel | null {
-    const progression: Record<LicenseLevel, LicenseLevel | null> = {
-      'rookie': 'D',
-      'D': 'C',
-      'C': 'B',
-      'B': 'A',
-      'A': 'pro',
-      'pro': null // Already at the highest level
-    };
-
-    return progression[currentLevel];
+    const allLevels = LicenseHelper.getAllLevels();
+    const currentIndex = allLevels.indexOf(currentLevel);
+    
+    if (currentIndex === -1 || currentIndex === allLevels.length - 1) {
+      return null; // Already at the highest level or invalid level
+    }
+    
+    return allLevels[currentIndex + 1];
   }
 
   /**
@@ -328,11 +281,11 @@ export class LicenseFilter {
 
     // General requirements for license progression in iRacing
     const requirements: Record<string, string> = {
-      'rookie-D': 'Complete 4 races or time trials with 3.0+ Safety Rating',
-      'D-C': 'Complete races with 3.0+ Safety Rating and meet minimum participation requirements',
-      'C-B': 'Complete races with 3.0+ Safety Rating and meet minimum participation requirements',
-      'B-A': 'Complete races with 3.0+ Safety Rating and meet minimum participation requirements',
-      'A-pro': 'Complete races with 4.0+ Safety Rating and meet minimum participation requirements'
+      [`${CentralizedLicenseLevel.ROOKIE}-${CentralizedLicenseLevel.D}`]: 'Complete 4 races or time trials with 3.0+ Safety Rating',
+      [`${CentralizedLicenseLevel.D}-${CentralizedLicenseLevel.C}`]: 'Complete races with 3.0+ Safety Rating and meet minimum participation requirements',
+      [`${CentralizedLicenseLevel.C}-${CentralizedLicenseLevel.B}`]: 'Complete races with 3.0+ Safety Rating and meet minimum participation requirements',
+      [`${CentralizedLicenseLevel.B}-${CentralizedLicenseLevel.A}`]: 'Complete races with 3.0+ Safety Rating and meet minimum participation requirements',
+      [`${CentralizedLicenseLevel.A}-${CentralizedLicenseLevel.PRO}`]: 'Complete races with 4.0+ Safety Rating and meet minimum participation requirements'
     };
 
     const key = `${currentLevel}-${nextLevel}`;

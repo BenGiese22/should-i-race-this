@@ -1,10 +1,14 @@
 // Types for the recommendation engine
+import { LicenseLevel } from '../types/license';
+import { 
+  RecommendationMode, 
+  RiskLevel, 
+  ConfidenceLevel
+} from '../types/recommendation';
+import { Category } from '../types/category';
 
-export type RecommendationMode = 'balanced' | 'irating_push' | 'safety_recovery';
-export type RiskLevel = 'low' | 'medium' | 'high';
-export type LicenseLevel = 'rookie' | 'D' | 'C' | 'B' | 'A' | 'pro';
-export type Category = 'oval' | 'road' | 'sports_car' | 'formula_car' | 'dirt_oval' | 'dirt_road';
-export type ConfidenceLevel = 'high' | 'estimated' | 'no_data';
+// Re-export the enums for backward compatibility
+export { RecommendationMode, RiskLevel, ConfidenceLevel, Category };
 
 export interface RacingOpportunity {
   seriesId: number;

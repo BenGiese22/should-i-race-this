@@ -7,7 +7,9 @@
 
 import { db, scheduleEntries } from '../db';
 import { eq, and, lte, desc } from 'drizzle-orm';
-import { fetchSeasonSchedule, getCurrentSeason, makeAuthenticatedRequest } from './client';
+import { getCurrentSeason, makeAuthenticatedRequest } from './client';
+import { LicenseHelper, LicenseLevel } from '../types/license';
+import { Category, CategoryHelper } from '../types/category';
 
 export interface ScheduleEntry {
   id: string;
@@ -64,56 +66,55 @@ function getWeekDates(raceWeekNum: number, seasonYear: number, seasonQuarter: nu
 }
 
 /**
- * Extract license level from series data
+ * Extract license level from series data using centralized license helper
  */
 function extractLicenseLevel(series: any): string {
-  if (series.min_license_level !== undefined) {
-    const levels = ['rookie', 'D', 'C', 'B', 'A', 'pro'];
-    return levels[series.min_license_level] || 'rookie';
+  // Try license_group first (most common in iRacing API)
+  if (series.license_group !== undefined) {
+    const licenseLevel = LicenseHelper.fromIRacingGroup(series.license_group);
+    return licenseLevel;
   }
-  return 'rookie';
+  
+  // Fallback to min_license_level if it exists
+  if (series.min_license_level !== undefined) {
+    const licenseLevel = LicenseHelper.fromIRacingGroup(series.min_license_level);
+    return licenseLevel;
+  }
+  
+  return LicenseLevel.ROOKIE;
 }
 
 /**
- * Extract category from schedule entry data using the same mapping as license categories
+ * Extract category from schedule entry data using the Category enum
  */
-function extractCategory(scheduleEntry: any): string {
+function extractCategory(scheduleEntry: any): Category {
   if (scheduleEntry.category) {
-    return mapScheduleCategory(scheduleEntry.category);
+    return CategoryHelper.fromScheduleCategory(scheduleEntry.category);
   }
   if (scheduleEntry.category_id !== undefined) {
     return mapScheduleCategory(scheduleEntry.category_id);
   }
-  return 'sports_car';
+  return Category.SPORTS_CAR;
 }
 
 /**
- * Map iRacing schedule category to our standardized categories
+ * Map iRacing schedule category to our standardized Category enum
  * This should match the license category mapping in auth/db.ts
  */
-function mapScheduleCategory(categoryId: number | string): string {
+function mapScheduleCategory(categoryId: number | string): Category {
   if (typeof categoryId === 'string') {
-    const lower = categoryId.toLowerCase();
-    switch (lower) {
-      case 'oval': return 'oval';
-      case 'road': return 'sports_car'; // Legacy road -> sports_car
-      case 'dirt_oval': return 'dirt_oval';
-      case 'dirt_road': return 'dirt_road';
-      case 'sports_car': return 'sports_car';
-      case 'formula_car': return 'formula_car';
-      default: return 'sports_car';
-    }
+    return CategoryHelper.fromScheduleCategory(categoryId);
   }
   
   const id = typeof categoryId === 'string' ? parseInt(categoryId, 10) : categoryId;
   switch (id) {
-    case 1: return 'oval';
-    case 2: return 'sports_car'; // Legacy road -> sports_car
-    case 3: return 'dirt_oval';
-    case 4: return 'dirt_road';
-    case 5: return 'sports_car'; // Sports Car
-    case 6: return 'formula_car'; // Formula Car
-    default: return 'sports_car';
+    case 1: return Category.OVAL;
+    case 2: return Category.SPORTS_CAR; // Legacy road -> sports_car
+    case 3: return Category.DIRT_OVAL;
+    case 4: return Category.DIRT_ROAD;
+    case 5: return Category.SPORTS_CAR; // Sports Car
+    case 6: return Category.FORMULA_CAR; // Formula Car
+    default: return Category.SPORTS_CAR;
   }
 }
 

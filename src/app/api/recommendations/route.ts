@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { recommendationEngine } from '@/lib/recommendations';
-import { RecommendationMode } from '@/lib/recommendations/types';
+import { RecommendationMode, RecommendationModeHelper } from '@/lib/types/recommendation';
 import { getSession } from '@/lib/auth/server';
 import { withPerformanceMonitoring } from '@/lib/performance/middleware';
 import { globalProfiler } from '@/lib/performance/profiler';
@@ -43,7 +43,7 @@ export const GET = withPerformanceMonitoring(async (request: NextRequest) => {
 
     // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
-    const mode = (searchParams.get('mode') as RecommendationMode) || 'balanced';
+    const mode = RecommendationModeHelper.tryFromString(searchParams.get('mode') || '') || RecommendationModeHelper.getDefault();
     const category = searchParams.get('category') || undefined;
     
     let minScore = 0;
@@ -84,12 +84,11 @@ export const GET = withPerformanceMonitoring(async (request: NextRequest) => {
     const includeAlmostEligible = searchParams.get('includeAlmostEligible') === 'true';
 
     // Validate mode
-    const validModes: RecommendationMode[] = ['balanced', 'irating_push', 'safety_recovery'];
-    if (!validModes.includes(mode)) {
+    if (!RecommendationModeHelper.isValid(mode)) {
       return createErrorResponse(
-        `Invalid recommendation mode: ${mode}. Valid modes are: ${validModes.join(', ')}.`,
+        `Invalid recommendation mode: ${mode}. Valid modes are: ${RecommendationModeHelper.getAllModes().join(', ')}.`,
         400,
-        { type: 'invalid_mode', validModes }
+        { type: 'invalid_mode', validModes: RecommendationModeHelper.getAllModes() }
       );
     }
 
@@ -228,7 +227,7 @@ export const POST = withPerformanceMonitoring(async (request: NextRequest) => {
       );
     }
 
-    const { seriesId, trackId, mode = 'balanced' } = body;
+    const { seriesId, trackId, mode = RecommendationModeHelper.getDefault() } = body;
 
     // Validate required parameters
     if (!seriesId || !trackId) {
@@ -261,12 +260,11 @@ export const POST = withPerformanceMonitoring(async (request: NextRequest) => {
     }
 
     // Validate mode
-    const validModes: RecommendationMode[] = ['balanced', 'irating_push', 'safety_recovery'];
-    if (!validModes.includes(mode as RecommendationMode)) {
+    if (!RecommendationModeHelper.isValid(mode as string)) {
       return createErrorResponse(
-        `Invalid recommendation mode: ${mode}. Valid modes are: ${validModes.join(', ')}.`,
+        `Invalid recommendation mode: ${mode}. Valid modes are: ${RecommendationModeHelper.getAllModes().join(', ')}.`,
         400,
-        { type: 'invalid_mode', validModes }
+        { type: 'invalid_mode', validModes: RecommendationModeHelper.getAllModes() }
       );
     }
 

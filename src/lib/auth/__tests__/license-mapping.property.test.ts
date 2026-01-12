@@ -7,8 +7,8 @@
 import { describe, test, expect } from '@jest/globals';
 import fc from 'fast-check';
 
-// Import the function we need to test - we'll need to export it from db.ts
-import { mapLicenseCategory } from '../db';
+// Import the functions we need to test
+import { mapLicenseCategory, mapLicenseLevelFromGroupName } from '../db';
 
 describe('License Category Mapping Properties', () => {
   /**
@@ -125,6 +125,100 @@ describe('License Category Mapping Properties', () => {
           
           // Should normalize to lowercase with underscores
           expect(result).toBe(categoryString.toLowerCase());
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * Property: Group Name License Level Mapping
+   * For any valid iRacing group_name, should map to correct internal license level
+   */
+  test('Property: Group Name License Level Mapping', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom('Rookie', 'Class D', 'Class C', 'Class B', 'Class A', 'Pro', 'Professional'),
+        (groupName) => {
+          const result = mapLicenseLevelFromGroupName(groupName);
+          
+          const validLevels = ['Rookie', 'D', 'C', 'B', 'A', 'Pro'];
+          expect(validLevels).toContain(result);
+          
+          // Specific mappings should be preserved
+          switch (groupName) {
+            case 'Rookie':
+              expect(result).toBe('Rookie');
+              break;
+            case 'Class D':
+              expect(result).toBe('D');
+              break;
+            case 'Class C':
+              expect(result).toBe('C');
+              break;
+            case 'Class B':
+              expect(result).toBe('B');
+              break;
+            case 'Class A':
+              expect(result).toBe('A');
+              break;
+            case 'Pro':
+            case 'Professional':
+              expect(result).toBe('Pro');
+              break;
+          }
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * Property: Case Insensitive Group Name Handling
+   * For any valid group name in different cases, should handle correctly
+   */
+  test('Property: Case Insensitive Group Name Handling', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom('rookie', 'CLASS D', 'class c', 'Class B', 'CLASS A', 'pro', 'PROFESSIONAL'),
+        (groupName) => {
+          const result = mapLicenseLevelFromGroupName(groupName);
+          
+          const validLevels = ['Rookie', 'D', 'C', 'B', 'A', 'Pro'];
+          expect(validLevels).toContain(result);
+          
+          // Should handle case insensitively
+          const normalized = groupName.toLowerCase().trim();
+          if (normalized === 'rookie') {
+            expect(result).toBe('Rookie');
+          } else if (normalized === 'class d') {
+            expect(result).toBe('D');
+          } else if (normalized === 'class c') {
+            expect(result).toBe('C');
+          } else if (normalized === 'class b') {
+            expect(result).toBe('B');
+          } else if (normalized === 'class a') {
+            expect(result).toBe('A');
+          } else if (normalized === 'pro' || normalized === 'professional') {
+            expect(result).toBe('Pro');
+          }
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * Property: Fallback Behavior for Invalid Group Names
+   * For any invalid group name, should fall back to 'rookie'
+   */
+  test('Property: Fallback Behavior for Invalid Group Names', () => {
+    fc.assert(
+      fc.property(
+        fc.string().filter(s => !['rookie', 'class d', 'class c', 'class b', 'class a', 'pro', 'professional', 'd', 'c', 'b', 'a'].includes(s.toLowerCase().trim())),
+        (invalidGroupName) => {
+          const result = mapLicenseLevelFromGroupName(invalidGroupName);
+          expect(result).toBe('Rookie');
         }
       ),
       { numRuns: 100 }

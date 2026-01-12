@@ -75,21 +75,17 @@ describe('Home Page', () => {
       expect(screen.getByText('Secure iRacing Integration')).toBeInTheDocument();
     });
 
-    it('should display login button with image', () => {
+    it('should display login button', () => {
       render(<Home />);
 
-      const loginButton = screen.getByRole('button');
+      const loginButton = screen.getByRole('button', { name: /login with iracing/i });
       expect(loginButton).toBeInTheDocument();
-      
-      const loginImage = screen.getByAltText('Login with iRacing');
-      expect(loginImage).toBeInTheDocument();
-      expect(loginImage).toHaveAttribute('src', '/login_with_iracing_button.png');
     });
 
     it('should call login function when login button is clicked', () => {
       render(<Home />);
 
-      const loginButton = screen.getByRole('button');
+      const loginButton = screen.getByRole('button', { name: /login with iracing/i });
       fireEvent.click(loginButton);
 
       expect(mockAuth.login).toHaveBeenCalledTimes(1);
@@ -217,8 +213,22 @@ describe('Home Page', () => {
   });
 
   describe('Auth Success State', () => {
-    it('should display success state when auth=success in URL params', () => {
-      (mockSearchParams.get as jest.Mock).mockReturnValue('success');
+    it('should display success state when user is authenticated', () => {
+      const mockUser = {
+        id: 'test-id',
+        iracingCustomerId: 123456,
+        displayName: 'Test Driver',
+        licenseClasses: [
+          { category: 'road', level: 'B', safetyRating: 3.5, iRating: 1500 },
+        ],
+        createdAt: '2024-01-01T00:00:00Z',
+        lastSyncAt: '2024-01-01T00:00:00Z',
+      };
+
+      (useAuth as jest.Mock).mockReturnValue({
+        ...mockAuth,
+        user: mockUser,
+      });
 
       render(<Home />);
 

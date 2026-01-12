@@ -2,6 +2,8 @@ import { db } from '../db';
 import { users, iracingAccounts, licenseClasses } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { encrypt, decrypt } from './crypto';
+import { LicenseHelper, LicenseLevel } from '../types/license';
+import { Category, CategoryHelper } from '../types/category';
 
 export interface UserProfile {
   id: string;
@@ -124,24 +126,34 @@ export async function upsertUser(profileData: any): Promise<UserProfile> {
 /**
  * Update user license information
  */
-export async function updateUserLicenses(userId: string, licenses: any[]): Promise<void> {
-  if (!Array.isArray(licenses)) {
-    console.error('updateUserLicenses called with non-array:', typeof licenses, licenses);
+export async function updateUserLicenses(userId: string, licenses: any[] | any): Promise<void> {
+  let licensesArray: any[] = [];
+  
+  // Handle both array and object formats
+  if (Array.isArray(licenses)) {
+    licensesArray = licenses;
+  } else if (licenses && typeof licenses === 'object') {
+    // Convert object format to array (like the OAuth response you're getting)
+    licensesArray = Object.values(licenses).filter(license => license && typeof license === 'object');
+    console.log('Converted object licenses to array:', licensesArray.length, 'licenses');
+  } else {
+    console.error('updateUserLicenses called with invalid format:', typeof licenses, licenses);
     return;
   }
   
-  if (licenses.length === 0) {
-    console.warn('updateUserLicenses called with empty array');
+  if (licensesArray.length === 0) {
+    console.warn('updateUserLicenses called with empty license data');
     return;
   }
   
   // Process licenses and group by category to avoid duplicates
   const licenseMap = new Map<string, any>();
   
-  licenses.forEach(license => {
+  licensesArray.forEach(license => {
     console.log('Processing license:', license);
     const category = mapLicenseCategory(license.category_id || license.category);
-    const level = mapLicenseLevel(license.license_level || license.level);
+    // Use group_name instead of license_level for more accurate mapping
+    const level = mapLicenseLevelFromGroupName(license.group_name || license.license_level || license.level);
     
     // Use the highest license level if there are duplicates for the same category
     const existing = licenseMap.get(category);
@@ -159,7 +171,7 @@ export async function updateUserLicenses(userId: string, licenses: any[]): Promi
   });
   
   // Ensure all 5 categories are present with at least rookie level
-  const requiredCategories = ['oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road'];
+  const requiredCategories = CategoryHelper.getAllCategories();
   
   requiredCategories.forEach(category => {
     if (!licenseMap.has(category)) {
@@ -167,7 +179,7 @@ export async function updateUserLicenses(userId: string, licenses: any[]): Promi
       licenseMap.set(category, {
         userId,
         category,
-        level: 'rookie',
+        level: LicenseLevel.ROOKIE,
         safetyRating: '1.00',
         irating: 1350, // Default rookie iRating
       });
@@ -187,18 +199,11 @@ export async function updateUserLicenses(userId: string, licenses: any[]): Promi
 }
 
 /**
- * Get numeric value for license level comparison
+ * Get numeric value for license level comparison using centralized helper
  */
 function getLicenseNumericValue(level: string): number {
-  switch (level.toLowerCase()) {
-    case 'rookie': return 1;
-    case 'd': return 2;
-    case 'c': return 3;
-    case 'b': return 4;
-    case 'a': return 5;
-    case 'pro': return 6;
-    default: return 1;
-  }
+  const normalizedLevel = LicenseHelper.normalize(level);
+  return LicenseHelper.getNumericValue(normalizedLevel);
 }
 
 /**
@@ -212,7 +217,11 @@ export async function storeUserTokens(
     expiresIn: number;
   }
 ): Promise<void> {
-  const encryptionKey = process.env.NEXTAUTH_SECRET!;
+  const encryptionKey = process.env.SESSION_SECRET;
+  if (!encryptionKey) {
+    throw new Error('SESSION_SECRET environment variable is required for token encryption');
+  }
+  
   const expiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
   
   const encryptedAccessToken = encrypt(tokens.accessToken, encryptionKey);
@@ -226,7 +235,7 @@ export async function storeUserTokens(
     .limit(1);
   
   if (existingAccount.length > 0) {
-    // Update existing account
+    // Update existing accountP
     await db
       .update(iracingAccounts)
       .set({
@@ -263,7 +272,11 @@ export async function getUserTokens(userId: string): Promise<StoredTokens | null
     return null;
   }
   
-  const encryptionKey = process.env.NEXTAUTH_SECRET!;
+  const encryptionKey = process.env.SESSION_SECRET;
+  if (!encryptionKey) {
+    throw new Error('SESSION_SECRET environment variable is required for token decryption');
+  }
+  
   const accountData = account[0];
   
   try {
@@ -342,65 +355,41 @@ export async function deleteUserTokens(userId: string): Promise<void> {
 }
 
 /**
- * Map iRacing license category ID to string
+ * Map iRacing license category ID to Category enum
  */
-export function mapLicenseCategory(categoryId: number | string): string {
+export function mapLicenseCategory(categoryId: number | string): Category {
   const id = typeof categoryId === 'string' ? parseInt(categoryId, 10) : categoryId;
   switch (id) {
-    case 1: return 'oval';
-    case 2: return 'sports_car'; // Legacy road -> sports_car
-    case 3: return 'dirt_oval';
-    case 4: return 'dirt_road';
-    case 5: return 'sports_car'; // Sports Car
-    case 6: return 'formula_car'; // Formula Car
+    case 1: return Category.OVAL;
+    case 2: return Category.SPORTS_CAR; // Legacy road -> sports_car
+    case 3: return Category.DIRT_OVAL;
+    case 4: return Category.DIRT_ROAD;
+    case 5: return Category.SPORTS_CAR; // Sports Car
+    case 6: return Category.FORMULA_CAR; // Formula Car
     default: 
       // Handle string categories directly
       if (typeof categoryId === 'string') {
-        const lower = categoryId.toLowerCase();
-        if (['oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road'].includes(lower)) {
-          return lower;
-        }
-        // Map specific category names
-        if (lower.includes('sports')) {
-          return 'sports_car';
-        }
-        if (lower.includes('formula')) {
-          return 'formula_car';
-        }
-        // Legacy road mapping
-        if (lower === 'road') {
-          return 'sports_car'; // Default road to sports_car
-        }
+        return CategoryHelper.normalize(categoryId);
       }
       console.warn('Unknown license category:', categoryId);
-      return 'sports_car'; // Default to sports_car instead of road
+      return Category.SPORTS_CAR; // Default to sports_car
   }
 }
 
 /**
- * Map iRacing license level to string
+ * Map iRacing license level from group_name to string using centralized helper
  */
-function mapLicenseLevel(level: number | string): string {
-  const lvl = typeof level === 'string' ? parseInt(level, 10) : level;
-  
-  // Handle the actual iRacing license level mapping
-  // iRacing uses different numbering: 1=Rookie, 2=D, 6=C, 10=B, 14=A, 18=Pro
-  switch (lvl) {
-    case 1: return 'rookie';
-    case 2: return 'D';
-    case 6: return 'C';
-    case 10: return 'B';
-    case 14: return 'A';
-    case 18: return 'pro';
-    default:
-      // Handle string levels directly
-      if (typeof level === 'string') {
-        const lower = level.toLowerCase();
-        if (['rookie', 'd', 'c', 'b', 'a', 'pro'].includes(lower)) {
-          return lower === 'rookie' ? 'rookie' : level.toUpperCase();
-        }
-      }
-      console.warn('Unknown license level:', level);
-      return 'rookie';
+export function mapLicenseLevelFromGroupName(groupName: string | number): string {
+  // If it's a number, use the license helper directly
+  if (typeof groupName === 'number') {
+    return LicenseHelper.fromIRacingGroup(groupName);
   }
+  
+  if (typeof groupName !== 'string') {
+    console.warn('Invalid group_name type:', typeof groupName, groupName);
+    return LicenseLevel.ROOKIE;
+  }
+  
+  // Use the centralized license helper for normalization
+  return LicenseHelper.normalize(groupName);
 }

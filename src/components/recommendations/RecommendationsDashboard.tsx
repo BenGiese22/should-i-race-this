@@ -209,7 +209,7 @@ export function RecommendationsDashboard({ initialMode = 'balanced' }: Recommend
                         {license.category.replace('_', ' ').toUpperCase()}
                       </Badge>
                       <div className="text-sm">
-                        <div className="font-semibold">{license.level.toUpperCase()}</div>
+                        <div className="font-semibold">{license.level}</div>
                         <div className="text-gray-600">
                           iR: {license.iRating} | SR: {license.safetyRating.toFixed(2)}
                         </div>

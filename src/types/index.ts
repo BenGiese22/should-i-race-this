@@ -1,3 +1,8 @@
+import { LicenseLevel } from '../lib/types/license';
+import { SessionType } from '../lib/types/session';
+import { RecommendationMode } from '../lib/types/recommendation';
+import { Category } from '../lib/types/category';
+
 // User and Authentication Types
 export interface User {
   id: string;
@@ -8,8 +13,8 @@ export interface User {
 }
 
 export interface LicenseClass {
-  category: 'oval' | 'road' | 'dirt_oval' | 'dirt_road';
-  level: 'rookie' | 'D' | 'C' | 'B' | 'A' | 'pro';
+  category: Category;
+  level: LicenseLevel;
   safetyRating: number;
   iRating: number;
 }
@@ -36,7 +41,11 @@ export interface RaceResult {
   raceLength: number | null;
 }
 
-export type SessionType = 'practice' | 'qualifying' | 'time_trial' | 'race';
+// Re-export the enums
+export { SessionType } from '../lib/types/session';
+export { RecommendationMode } from '../lib/types/recommendation';
+export { Category } from '../lib/types/category';
+export { AnalyticsMode } from '../lib/types/analytics';
 
 // Analytics Types
 export interface PerformanceMetric {
@@ -57,7 +66,6 @@ export interface PerformanceMetric {
 }
 
 export type GroupingType = 'series' | 'track' | 'series_track';
-export type RecommendationMode = 'balanced' | 'irating_push' | 'safety_recovery';
 
 // Recommendation Types
 export interface Score {
@@ -82,7 +90,7 @@ export interface RacingOpportunity {
   seriesName: string;
   trackId: number;
   trackName: string;
-  licenseRequired: string;
+  licenseRequired: LicenseLevel;
   seasonYear: number;
   seasonQuarter: number;
   raceWeekNum: number;

@@ -7,11 +7,13 @@ import { describe, test, expect } from '@jest/globals';
 import { ScoringAlgorithm } from './scoring';
 import { RecommendationMode } from './types';
 
+import { RecommendationMode, RecommendationModeHelper } from '../types/recommendation';
+
 describe('Mode-Based Weighting System', () => {
   const scoringAlgorithm = new ScoringAlgorithm();
 
   test('All mode weights sum to 1.0', () => {
-    const modes: RecommendationMode[] = ['balanced', 'irating_push', 'safety_recovery'];
+    const modes = RecommendationModeHelper.getAllModes();
     
     modes.forEach(mode => {
       // Access the private method through reflection for testing
@@ -32,8 +34,8 @@ describe('Mode-Based Weighting System', () => {
   });
 
   test('iRating push mode prioritizes performance and familiarity', () => {
-    const weights = (scoringAlgorithm as any).getModeWeights('irating_push');
-    const balancedWeights = (scoringAlgorithm as any).getModeWeights('balanced');
+    const weights = (scoringAlgorithm as any).getModeWeights(RecommendationMode.IRATING_PUSH);
+    const balancedWeights = (scoringAlgorithm as any).getModeWeights(RecommendationMode.BALANCED);
     
     // Performance should have higher weight in iRating push mode
     expect(weights.performance).toBeGreaterThan(balancedWeights.performance);
@@ -46,8 +48,8 @@ describe('Mode-Based Weighting System', () => {
   });
 
   test('Safety recovery mode prioritizes safety and consistency', () => {
-    const weights = (scoringAlgorithm as any).getModeWeights('safety_recovery');
-    const balancedWeights = (scoringAlgorithm as any).getModeWeights('balanced');
+    const weights = (scoringAlgorithm as any).getModeWeights(RecommendationMode.SAFETY_RECOVERY);
+    const balancedWeights = (scoringAlgorithm as any).getModeWeights(RecommendationMode.BALANCED);
     
     // Safety should have much higher weight in safety recovery mode
     expect(weights.safety).toBeGreaterThan(balancedWeights.safety);
@@ -61,7 +63,7 @@ describe('Mode-Based Weighting System', () => {
   });
 
   test('Balanced mode has reasonable weight distribution', () => {
-    const weights = (scoringAlgorithm as any).getModeWeights('balanced');
+    const weights = (scoringAlgorithm as any).getModeWeights(RecommendationMode.BALANCED);
     
     // No single factor should dominate (max 20%)
     Object.values(weights).forEach(weight => {

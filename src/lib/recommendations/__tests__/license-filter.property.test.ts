@@ -7,17 +7,24 @@
 import { describe, test, expect } from '@jest/globals';
 import fc from 'fast-check';
 import { LicenseFilter } from '../license-filter';
+import { LicenseHelper, LicenseLevel } from '../../types/license';
 import { 
   RacingOpportunity, 
   UserHistory, 
   LicenseClass,
-  Category,
-  LicenseLevel
+  Category
 } from '../types';
 
 // Test data generators
 const categoryArb = fc.constantFrom('oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
-const licenseLevelArb = fc.constantFrom('rookie', 'D', 'C', 'B', 'A', 'pro') as fc.Arbitrary<LicenseLevel>;
+const licenseLevelArb = fc.constantFrom(
+  LicenseLevel.ROOKIE, 
+  LicenseLevel.D, 
+  LicenseLevel.C, 
+  LicenseLevel.B, 
+  LicenseLevel.A, 
+  LicenseLevel.PRO
+) as fc.Arbitrary<LicenseLevel>;
 
 const licenseClassArb = fc.record({
   category: categoryArb,
@@ -105,22 +112,13 @@ describe('License-Based Access Control Properties', () => {
             expect(userLicensesInCategory.length).toBeGreaterThan(0);
 
             if (userLicensesInCategory.length > 0) {
-              const licenseHierarchy: Record<LicenseLevel, number> = {
-                'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-              };
-
-              // Get the highest license level in this category
+              // Get the highest license level in this category using centralized helper
               const highestUserLicense = userLicensesInCategory.reduce((highest, current) => {
-                const currentValue = licenseHierarchy[current.level];
-                const highestValue = licenseHierarchy[highest.level];
-                return currentValue > highestValue ? current : highest;
+                return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
               });
 
-              const userLevelValue = licenseHierarchy[highestUserLicense.level];
-              const requiredLevelValue = licenseHierarchy[opportunity.licenseRequired];
-
               // User's highest license level must meet or exceed the requirement
-              expect(userLevelValue).toBeGreaterThanOrEqual(requiredLevelValue);
+              expect(LicenseHelper.meetsRequirement(highestUserLicense.level, opportunity.licenseRequired)).toBe(true);
             }
           }
 
@@ -132,21 +130,12 @@ describe('License-Based Access Control Properties', () => {
 
             if (userLicensesInCategory.length === 0) return true; // No license in category = ineligible
 
-            const licenseHierarchy: Record<LicenseLevel, number> = {
-              'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-            };
-
             // Get the highest license level in this category
             const highestUserLicense = userLicensesInCategory.reduce((highest, current) => {
-              const currentValue = licenseHierarchy[current.level];
-              const highestValue = licenseHierarchy[highest.level];
-              return currentValue > highestValue ? current : highest;
+              return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
             });
 
-            const userLevelValue = licenseHierarchy[highestUserLicense.level];
-            const requiredLevelValue = licenseHierarchy[opp.licenseRequired];
-
-            return userLevelValue < requiredLevelValue; // Insufficient license = ineligible
+            return !LicenseHelper.meetsRequirement(highestUserLicense.level, opp.licenseRequired);
           });
 
           // None of the ineligible series should appear in filtered results
@@ -192,21 +181,12 @@ describe('License-Based Access Control Properties', () => {
 
             // If user has a license in this category, it should be sufficient
             if (userLicensesInCategory.length > 0) {
-              const licenseHierarchy: Record<LicenseLevel, number> = {
-                'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-              };
-
               // Get the highest license level in this category
               const highestUserLicense = userLicensesInCategory.reduce((highest, current) => {
-                const currentValue = licenseHierarchy[current.level];
-                const highestValue = licenseHierarchy[highest.level];
-                return currentValue > highestValue ? current : highest;
+                return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
               });
 
-              const userLevelValue = licenseHierarchy[highestUserLicense.level];
-              const requiredLevelValue = licenseHierarchy[opportunity.licenseRequired];
-
-              expect(userLevelValue).toBeGreaterThanOrEqual(requiredLevelValue);
+              expect(LicenseHelper.meetsRequirement(highestUserLicense.level, opportunity.licenseRequired)).toBe(true);
             }
           }
 
@@ -233,10 +213,6 @@ describe('License-Based Access Control Properties', () => {
         licenseLevelArb,
         categoryArb,
         async (userLevel, requiredLevel, category) => {
-          const licenseHierarchy: Record<LicenseLevel, number> = {
-            'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-          };
-
           const userHistory: UserHistory = {
             userId: 'test-user',
             seriesTrackHistory: [],
@@ -278,15 +254,10 @@ describe('License-Based Access Control Properties', () => {
           };
 
           const hasLicense = licenseFilter.hasRequiredLicense(opportunity, userHistory);
-          const userLevelValue = licenseHierarchy[userLevel];
-          const requiredLevelValue = licenseHierarchy[requiredLevel];
 
-          // User should have access if their level is >= required level
-          if (userLevelValue >= requiredLevelValue) {
-            expect(hasLicense).toBe(true);
-          } else {
-            expect(hasLicense).toBe(false);
-          }
+          // User should have access if their level meets or exceeds required level
+          const shouldHaveAccess = LicenseHelper.meetsRequirement(userLevel, requiredLevel);
+          expect(hasLicense).toBe(shouldHaveAccess);
         }
       ),
       { numRuns: 100 }
@@ -336,18 +307,13 @@ describe('License-Based Access Control Properties', () => {
             );
 
             if (userLicense) {
-              const licenseHierarchy: Record<LicenseLevel, number> = {
-                'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-              };
-
-              const userLevelValue = licenseHierarchy[userLicense.level];
-              const requiredLevelValue = licenseHierarchy[opportunity.licenseRequired];
-
               // Should be exactly one level below requirement
-              expect(requiredLevelValue).toBe(userLevelValue + 1);
+              const userValue = LicenseHelper.getNumericValue(userLicense.level);
+              const requiredValue = LicenseHelper.getNumericValue(opportunity.licenseRequired);
+              expect(requiredValue).toBe(userValue + 1);
             } else {
               // If no license in category, only rookie series should be almost eligible
-              expect(opportunity.licenseRequired).toBe('rookie');
+              expect(opportunity.licenseRequired).toBe(LicenseLevel.ROOKIE);
             }
           }
         }
@@ -396,14 +362,8 @@ describe('License-Based Access Control Properties', () => {
             if (userLicensesInCategory.length === 0) continue;
 
             // Get the highest license level in this category
-            const licenseHierarchy: Record<LicenseLevel, number> = {
-              'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-            };
-
             const highestUserLicense = userLicensesInCategory.reduce((highest, current) => {
-              const currentValue = licenseHierarchy[current.level];
-              const highestValue = licenseHierarchy[highest.level];
-              return currentValue > highestValue ? current : highest;
+              return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
             });
 
             const categoryOpportunities = opportunities.filter(opp => opp.category === category);
@@ -411,18 +371,12 @@ describe('License-Based Access Control Properties', () => {
 
             // All filtered opportunities in this category should be eligible
             for (const opportunity of filteredCategoryOpportunities) {
-              const userLevelValue = licenseHierarchy[highestUserLicense.level];
-              const requiredLevelValue = licenseHierarchy[opportunity.licenseRequired];
-
-              expect(userLevelValue).toBeGreaterThanOrEqual(requiredLevelValue);
+              expect(LicenseHelper.meetsRequirement(highestUserLicense.level, opportunity.licenseRequired)).toBe(true);
             }
 
             // No eligible opportunities in this category should be excluded
             for (const opportunity of categoryOpportunities) {
-              const userLevelValue = licenseHierarchy[highestUserLicense.level];
-              const requiredLevelValue = licenseHierarchy[opportunity.licenseRequired];
-
-              if (userLevelValue >= requiredLevelValue) {
+              if (LicenseHelper.meetsRequirement(highestUserLicense.level, opportunity.licenseRequired)) {
                 // This opportunity should be included in filtered results
                 const isIncluded = filteredCategoryOpportunities.some(
                   filtered => filtered.seriesId === opportunity.seriesId && 
@@ -484,31 +438,22 @@ describe('License-Based Access Control Properties', () => {
 
             // Current level should be the highest level for this category
             const categoryLicenses = userHistory.licenseClasses.filter(l => l.category === suggestion.category);
-            const licenseHierarchy: Record<LicenseLevel, number> = {
-              'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-            };
 
             const highestLicense = categoryLicenses.reduce((highest, current) => {
-              const currentValue = licenseHierarchy[current.level];
-              const highestValue = licenseHierarchy[highest.level];
-              return currentValue > highestValue ? current : highest;
+              return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
             });
 
             expect(suggestion.currentLevel).toBe(highestLicense.level);
 
             // Next level should be valid progression
             if (suggestion.nextLevel) {
-              const licenseHierarchy: Record<LicenseLevel, number> = {
-                'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-              };
-
-              const currentValue = licenseHierarchy[suggestion.currentLevel];
-              const nextValue = licenseHierarchy[suggestion.nextLevel];
+              const currentValue = LicenseHelper.getNumericValue(suggestion.currentLevel);
+              const nextValue = LicenseHelper.getNumericValue(suggestion.nextLevel);
 
               expect(nextValue).toBe(currentValue + 1);
             } else {
-              // If no next level, current should be 'pro'
-              expect(suggestion.currentLevel).toBe('pro');
+              // If no next level, current should be 'Pro'
+              expect(suggestion.currentLevel).toBe(LicenseLevel.PRO);
             }
 
             // Requirements should be a non-empty string
@@ -562,14 +507,8 @@ describe('License-Based Access Control Properties', () => {
 
           if (userLicensesInCategory.length > 0) {
             // Should return the highest license level in this category
-            const licenseHierarchy: Record<LicenseLevel, number> = {
-              'rookie': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'pro': 5
-            };
-
             const expectedHighest = userLicensesInCategory.reduce((highest, current) => {
-              const currentValue = licenseHierarchy[current.level];
-              const highestValue = licenseHierarchy[highest.level];
-              return currentValue > highestValue ? current : highest;
+              return LicenseHelper.compare(current.level, highest.level) > 0 ? current : highest;
             });
 
             expect(highestLevel).toBe(expectedHighest.level);

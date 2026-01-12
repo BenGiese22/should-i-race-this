@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPerformanceMetrics, getUserSeasons, getSessionTypeComparison, getPerformanceTrends } from '@/lib/db/analytics';
 import { getSession } from '@/lib/auth/server';
 import type { GroupingType, SessionType } from '@/types';
+import { AnalyticsMode, AnalyticsModeHelper } from '@/lib/types/analytics';
 
 /**
  * GET /api/data/analytics
@@ -21,7 +22,7 @@ import type { GroupingType, SessionType } from '@/types';
  * - trackIds: comma-separated list of track IDs (optional)
  * - page: page number for pagination (default: 1)
  * - limit: results per page (default: 50, max: 200)
- * - mode: 'metrics' | 'trends' | 'comparison' | 'seasons' (default: 'metrics')
+ * - mode: AnalyticsMode enum value (default: 'metrics')
  */
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +38,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     
     // Parse query parameters
-    const mode = searchParams.get('mode') || 'metrics';
+    const modeParam = searchParams.get('mode') || 'metrics';
+    const mode = AnalyticsModeHelper.normalize(modeParam);
     const groupBy = searchParams.get('groupBy') as GroupingType;
     const sessionTypesParam = searchParams.get('sessionTypes') || searchParams.get('sessionType');
     const seasonYear = searchParams.get('seasonYear');
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // Handle different modes
     switch (mode) {
-      case 'seasons':
+      case AnalyticsMode.SEASONS:
         // Return available seasons for the user
         const seasons = await getUserSeasons(session.userId);
         return NextResponse.json({
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
           success: true,
         });
 
-      case 'comparison':
+      case AnalyticsMode.COMPARISON:
         // Return session type comparison
         const comparisonFilters = {
           seasonYear: seasonYear ? parseInt(seasonYear) : undefined,
@@ -74,7 +76,7 @@ export async function GET(request: NextRequest) {
           success: true,
         });
 
-      case 'trends':
+      case AnalyticsMode.TRENDS:
         // Return performance trends over time
         const trendsOptions = {
           seriesId: seriesIdsParam ? parseInt(seriesIdsParam.split(',')[0]) : undefined,
@@ -89,7 +91,7 @@ export async function GET(request: NextRequest) {
           success: true,
         });
 
-      case 'metrics':
+      case AnalyticsMode.METRICS:
       default:
         // Validate required parameters for metrics mode
         if (!groupBy || !['series', 'track', 'series_track'].includes(groupBy)) {
@@ -211,11 +213,13 @@ export async function POST(request: NextRequest) {
       groupBy, 
       filters = {}, 
       pagination = { page: 1, limit: 50 },
-      mode = 'metrics'
+      mode: modeParam = 'metrics'
     } = body;
 
+    const mode = AnalyticsModeHelper.normalize(modeParam);
+
     // Validate groupBy for metrics mode
-    if (mode === 'metrics' && (!groupBy || !['series', 'track', 'series_track'].includes(groupBy))) {
+    if (mode === AnalyticsMode.METRICS && (!groupBy || !['series', 'track', 'series_track'].includes(groupBy))) {
       return NextResponse.json(
         { error: 'Invalid or missing groupBy parameter for metrics mode' },
         { status: 400 }
@@ -241,11 +245,11 @@ export async function POST(request: NextRequest) {
 
     let result;
     switch (mode) {
-      case 'seasons':
+      case AnalyticsMode.SEASONS:
         result = await getUserSeasons(session.userId);
         break;
       
-      case 'comparison':
+      case AnalyticsMode.COMPARISON:
         result = await getSessionTypeComparison(session.userId, {
           seasonYear: processedFilters.seasonYear,
           seasonQuarter: processedFilters.seasonQuarter,
@@ -254,7 +258,7 @@ export async function POST(request: NextRequest) {
         });
         break;
       
-      case 'trends':
+      case AnalyticsMode.TRENDS:
         result = await getPerformanceTrends(session.userId, {
           seriesId: processedFilters.seriesIds?.[0],
           trackId: processedFilters.trackIds?.[0],
@@ -263,7 +267,7 @@ export async function POST(request: NextRequest) {
         });
         break;
       
-      case 'metrics':
+      case AnalyticsMode.METRICS:
       default:
         const metrics = await getPerformanceMetrics(session.userId, groupBy, processedFilters);
         

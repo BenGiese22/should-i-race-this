@@ -32,8 +32,8 @@ describe('Authentication Integration Tests', () => {
     
     // Verify URL structure
     const url = new URL(authUrl);
-    expect(url.origin).toBe('https://members-ng.iracing.com');
-    expect(url.pathname).toBe('/auth/authorize');
+    expect(url.origin).toBe('https://oauth.iracing.com');
+    expect(url.pathname).toBe('/oauth2/authorize');
     expect(url.searchParams.get('client_id')).toBe(config.clientId);
     expect(url.searchParams.get('redirect_uri')).toBe(config.redirectUri);
     expect(url.searchParams.get('code_challenge')).toBe(challenge.codeChallenge);
@@ -57,10 +57,10 @@ describe('Authentication Integration Tests', () => {
   });
 
   test('OAuth endpoints are correctly configured', () => {
-    expect(IRACING_OAUTH_CONFIG.authorizationUrl).toBe('https://members-ng.iracing.com/auth/authorize');
-    expect(IRACING_OAUTH_CONFIG.tokenUrl).toBe('https://members-ng.iracing.com/auth/token');
-    expect(IRACING_OAUTH_CONFIG.userInfoUrl).toBe('https://members-ng.iracing.com/data/member/info');
-    expect(IRACING_OAUTH_CONFIG.scope).toBe('read');
+    expect(IRACING_OAUTH_CONFIG.authorizationUrl).toBe('https://oauth.iracing.com/oauth2/authorize');
+    expect(IRACING_OAUTH_CONFIG.tokenUrl).toBe('https://oauth.iracing.com/oauth2/token');
+    expect(IRACING_OAUTH_CONFIG.userInfoUrl).toBe('https://oauth.iracing.com/oauth2/iracing/profile');
+    expect(IRACING_OAUTH_CONFIG.scope).toBe('iracing.profile iracing.auth');
   });
 
   test('PKCE challenge security properties', () => {
@@ -94,7 +94,7 @@ describe('Authentication Integration Tests', () => {
     // These are the required environment variables for OAuth
     const requiredEnvVars = [
       'IRACING_CLIENT_ID',
-      'NEXTAUTH_SECRET',
+      'SESSION_SECRET',
       'NEXTAUTH_URL',
       'OAUTH_REDIRECT_URI',
       'DATABASE_URL'

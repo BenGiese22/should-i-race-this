@@ -13,6 +13,7 @@ import type {
   GlobalStats 
 } from './types';
 import { eq, sql, and, isNotNull } from 'drizzle-orm';
+import { LicenseHelper, LicenseLevel as LicenseEnum } from '../types/license';
 import { db } from '../db';
 import { licenseClasses, raceResults, scheduleEntries } from '../db/schema';
 import { recommendationCache, CacheKeys, CacheTTL } from './cache';
@@ -68,7 +69,7 @@ class AnalyticsLogger {
 
 const analyticsLogger = new AnalyticsLogger();
 
-export type ConfidenceLevel = 'high' | 'estimated' | 'no_data';
+import { ConfidenceLevel, ConfidenceLevelHelper } from '../types/recommendation';
 
 export interface UserPerformanceData {
   seriesTrackHistory: SeriesTrackPerformance[];
@@ -247,10 +248,10 @@ export class AnalyticsIntegration {
       if (finalLicenses.length === 0 && (analyticsData?.length || 0) > 0) {
         console.log(`Debug: User ${userId} has race data but no licenses. Providing default licenses.`);
         
-        // Provide default license for the primary category
+        // Provide default license for the primary category using centralized helper
         finalLicenses = [{
           category: primaryCategory,
-          level: 'D' as LicenseLevel, // Default to D license
+          level: LicenseEnum.D, // Default to D license using enum
           safetyRating: 3.0, // Default safe rating
           iRating: 1350 // Default iRating
         }];
@@ -437,9 +438,7 @@ export class AnalyticsIntegration {
    * Requirements: 5.2
    */
   getConfidenceLevel(raceCount: number): ConfidenceLevel {
-    if (raceCount >= 3) return 'high';
-    if (raceCount >= 1) return 'estimated';
-    return 'no_data';
+    return ConfidenceLevelHelper.fromRaceCount(raceCount);
   }
 
   /**

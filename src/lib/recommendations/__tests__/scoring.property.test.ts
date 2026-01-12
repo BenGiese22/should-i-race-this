@@ -24,8 +24,10 @@ import {
 // Test data generators
 const categoryArb = fc.constantFrom('oval', 'road', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
 const licenseLevelArb = fc.constantFrom('rookie', 'D', 'C', 'B', 'A', 'pro') as fc.Arbitrary<LicenseLevel>;
-const recommendationModeArb = fc.constantFrom('balanced', 'irating_push', 'safety_recovery') as fc.Arbitrary<RecommendationMode>;
-const riskLevelArb = fc.constantFrom('low', 'medium', 'high') as fc.Arbitrary<RiskLevel>;
+import { RecommendationMode, RecommendationModeHelper, RiskLevel, RiskLevelHelper } from '../../types/recommendation';
+
+const recommendationModeArb = fc.constantFrom(...RecommendationModeHelper.getAllModes());
+const riskLevelArb = fc.constantFrom(...RiskLevelHelper.getAllLevels());
 
 const timeSlotArb = fc.record({
   hour: fc.integer({ min: 0, max: 23 }),
@@ -142,8 +144,8 @@ describe('Multi-Factor Scoring Algorithm Properties', () => {
           expect(score.factors.timeVolatility).toBeLessThanOrEqual(100);
 
           // Risk indicators must be valid levels
-          expect(['low', 'medium', 'high']).toContain(score.iRatingRisk);
-          expect(['low', 'medium', 'high']).toContain(score.safetyRatingRisk);
+          expect(RiskLevelHelper.getAllLevels()).toContain(score.iRatingRisk);
+          expect(RiskLevelHelper.getAllLevels()).toContain(score.safetyRatingRisk);
 
           // Reasoning must be an array of strings
           expect(Array.isArray(score.reasoning)).toBe(true);
@@ -417,12 +419,12 @@ describe('Multi-Factor Scoring Algorithm Properties', () => {
           }
 
           // Low risk should not have very poor factor scores
-          if (score.iRatingRisk === 'low') {
+          if (score.iRatingRisk === RiskLevel.LOW) {
             expect(score.factors.performance).toBeGreaterThanOrEqual(40);
             expect(score.factors.predictability).toBeGreaterThanOrEqual(30);
           }
 
-          if (score.safetyRatingRisk === 'low') {
+          if (score.safetyRatingRisk === RiskLevel.LOW) {
             expect(score.factors.safety).toBeGreaterThanOrEqual(40);
             expect(score.factors.attritionRisk).toBeGreaterThanOrEqual(30);
           }

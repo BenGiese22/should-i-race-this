@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/server';
 import { db } from '@/lib/db';
 import { scheduleEntries } from '@/lib/db/schema';
+import { LicenseLevel } from '@/lib/types/license';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
         seriesName: 'Skip Barber Formula 2000',
         trackId: 101,
         trackName: 'Road Atlanta',
-        licenseRequired: 'D',
+        licenseRequired: LicenseLevel.D,
         category: 'formula_car', // Formula series -> formula_car
         raceLength: 45,
         hasOpenSetup: false,
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
         seriesName: 'Global Mazda MX-5 Cup',
         trackId: 102,
         trackName: 'Laguna Seca',
-        licenseRequired: 'D',
+        licenseRequired: LicenseLevel.D,
         category: 'sports_car', // Sports car series -> sports_car
         raceLength: 30,
         hasOpenSetup: false,
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
         seriesName: 'GT4 Challenge by Falken Tyre',
         trackId: 103,
         trackName: 'Nürburgring Grand-Prix-Strecke',
-        licenseRequired: 'C',
+        licenseRequired: LicenseLevel.C,
         category: 'sports_car', // GT series -> sports_car
         raceLength: 60,
         hasOpenSetup: true,
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
         seriesName: 'Sports Car Challenge by Falken Tyre',
         trackId: 103,
         trackName: 'Nürburgring Grand-Prix-Strecke',
-        licenseRequired: 'B',
+        licenseRequired: LicenseLevel.B,
         category: 'sports_car', // Sports car series -> sports_car
         raceLength: 90,
         hasOpenSetup: true,
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
         seriesName: 'Street Stock',
         trackId: 201,
         trackName: 'Charlotte Motor Speedway',
-        licenseRequired: 'rookie',
+        licenseRequired: LicenseLevel.ROOKIE,
         category: 'oval',
         raceLength: 25,
         hasOpenSetup: false,
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
         seriesName: 'ARCA Menards Series',
         trackId: 202,
         trackName: 'Daytona International Speedway',
-        licenseRequired: 'D',
+        licenseRequired: LicenseLevel.D,
         category: 'oval',
         raceLength: 40,
         hasOpenSetup: false,

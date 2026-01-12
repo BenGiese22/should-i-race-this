@@ -24,7 +24,9 @@ import {
 // Test data generators (reusing from scoring.property.test.ts)
 const categoryArb = fc.constantFrom('oval', 'road', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
 const licenseLevelArb = fc.constantFrom('rookie', 'D', 'C', 'B', 'A', 'pro') as fc.Arbitrary<LicenseLevel>;
-const recommendationModeArb = fc.constantFrom('balanced', 'irating_push', 'safety_recovery') as fc.Arbitrary<RecommendationMode>;
+import { RecommendationMode, RecommendationModeHelper } from '../../types/recommendation';
+
+const recommendationModeArb = fc.constantFrom(...RecommendationModeHelper.getAllModes());
 
 const timeSlotArb = fc.record({
   hour: fc.integer({ min: 0, max: 23 }),

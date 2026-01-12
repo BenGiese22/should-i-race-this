@@ -11,7 +11,9 @@ import {
   ConfidenceLevel,
   DataConfidence
 } from './types';
+import { RecommendationMode as RecommendationModeEnum, RiskLevel as RiskLevelEnum, ConfidenceLevel as ConfidenceLevelEnum } from '../types/recommendation';
 import { analyticsIntegration } from './analytics-integration';
+import { LicenseHelper } from '../types/license';
 
 /**
  * Multi-factor scoring algorithm for racing recommendations
@@ -122,18 +124,14 @@ export class ScoringAlgorithm {
   }
 
   /**
-   * Get performance bonus based on license level (higher license = better expected performance)
+   * Get performance bonus based on license level using centralized helper
    */
   private getLicenseLevelBonus(level?: LicenseLevel): number {
-    switch (level) {
-      case 'pro': return 3;
-      case 'A': return 2;
-      case 'B': return 1;
-      case 'C': return 0;
-      case 'D': return -1;
-      case 'rookie': return -2;
-      default: return 0;
-    }
+    if (!level) return 0;
+    
+    const numericValue = LicenseHelper.getNumericValue(level);
+    // Convert 1-6 scale to -2 to +3 bonus scale
+    return numericValue - 3;
   }
 
   /**
@@ -401,7 +399,7 @@ export class ScoringAlgorithm {
    */
   private getModeWeights(mode: RecommendationMode): ModeWeights {
     switch (mode) {
-      case 'balanced':
+      case RecommendationModeEnum.BALANCED:
         return {
           performance: 0.15,
           safety: 0.15,
@@ -413,7 +411,7 @@ export class ScoringAlgorithm {
           timeVolatility: 0.10
         };
       
-      case 'irating_push':
+      case RecommendationModeEnum.IRATING_PUSH:
         return {
           performance: 0.25, // Higher weight on performance
           safety: 0.10, // Lower weight on safety
@@ -425,7 +423,7 @@ export class ScoringAlgorithm {
           timeVolatility: 0.05
         };
       
-      case 'safety_recovery':
+      case RecommendationModeEnum.SAFETY_RECOVERY:
         return {
           performance: 0.05, // Lower weight on performance
           safety: 0.30, // Much higher weight on safety
@@ -461,12 +459,12 @@ export class ScoringAlgorithm {
    */
   private calculateIRatingRisk(factors: ScoringFactors, opportunity: RacingOpportunity): RiskLevel {
     // High risk if poor performance expected or high unpredictability
-    if (factors.performance < 40 || factors.predictability < 30) return 'high';
+    if (factors.performance < 40 || factors.predictability < 30) return RiskLevelEnum.HIGH;
     
     // Medium risk if moderate performance or some unpredictability
-    if (factors.performance < 60 || factors.predictability < 60) return 'medium';
+    if (factors.performance < 60 || factors.predictability < 60) return RiskLevelEnum.MEDIUM;
     
-    return 'low';
+    return RiskLevelEnum.LOW;
   }
 
   /**
@@ -474,12 +472,12 @@ export class ScoringAlgorithm {
    */
   private calculateSafetyRatingRisk(factors: ScoringFactors, opportunity: RacingOpportunity): RiskLevel {
     // High risk if poor safety expected or high attrition
-    if (factors.safety < 40 || factors.attritionRisk < 30) return 'high';
+    if (factors.safety < 40 || factors.attritionRisk < 30) return RiskLevelEnum.HIGH;
     
     // Medium risk if moderate safety concerns
-    if (factors.safety < 60 || factors.attritionRisk < 60) return 'medium';
+    if (factors.safety < 60 || factors.attritionRisk < 60) return RiskLevelEnum.MEDIUM;
     
-    return 'low';
+    return RiskLevelEnum.LOW;
   }
 
   /**
@@ -549,27 +547,27 @@ export class ScoringAlgorithm {
     const seriesTrackHistory = this.findSeriesTrackHistory(opportunity, userHistory);
     
     // Performance confidence based on race count
-    let performanceConfidence: ConfidenceLevel = 'no_data';
+    let performanceConfidence: ConfidenceLevel = ConfidenceLevelEnum.NO_DATA;
     if (seriesTrackHistory && seriesTrackHistory.raceCount >= 3) {
-      performanceConfidence = 'high';
+      performanceConfidence = ConfidenceLevelEnum.HIGH;
     } else if (userHistory.overallStats.totalRaces >= 5) {
-      performanceConfidence = 'estimated';
+      performanceConfidence = ConfidenceLevelEnum.ESTIMATED;
     }
 
     // Safety confidence based on race count
-    let safetyConfidence: ConfidenceLevel = 'no_data';
+    let safetyConfidence: ConfidenceLevel = ConfidenceLevelEnum.NO_DATA;
     if (seriesTrackHistory && seriesTrackHistory.raceCount >= 3) {
-      safetyConfidence = 'high';
+      safetyConfidence = ConfidenceLevelEnum.HIGH;
     } else if (userHistory.overallStats.totalRaces >= 3) {
-      safetyConfidence = 'estimated';
+      safetyConfidence = ConfidenceLevelEnum.ESTIMATED;
     }
 
     // Consistency confidence based on race count (needs more races for meaningful std dev)
-    let consistencyConfidence: ConfidenceLevel = 'no_data';
+    let consistencyConfidence: ConfidenceLevel = ConfidenceLevelEnum.NO_DATA;
     if (seriesTrackHistory && seriesTrackHistory.raceCount >= 5) {
-      consistencyConfidence = 'high';
+      consistencyConfidence = ConfidenceLevelEnum.HIGH;
     } else if (userHistory.overallStats.totalRaces >= 5) {
-      consistencyConfidence = 'estimated';
+      consistencyConfidence = ConfidenceLevelEnum.ESTIMATED;
     }
 
     // Familiarity confidence based on any experience
@@ -607,13 +605,13 @@ export class ScoringAlgorithm {
     }
 
     // Boost priority for high confidence data
-    if (dataConfidence.performance === 'high') {
+    if (dataConfidence.performance === ConfidenceLevelEnum.HIGH) {
       priorityScore += 10;
     }
-    if (dataConfidence.safety === 'high') {
+    if (dataConfidence.safety === ConfidenceLevelEnum.HIGH) {
       priorityScore += 5;
     }
-    if (dataConfidence.consistency === 'high') {
+    if (dataConfidence.consistency === ConfidenceLevelEnum.HIGH) {
       priorityScore += 5;
     }
 

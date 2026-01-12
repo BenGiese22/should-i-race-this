@@ -7,13 +7,13 @@
 import { describe, test, expect } from '@jest/globals';
 import * as fc from 'fast-check';
 import {
+  SessionType,
   normalizeSessionType,
   getAllSessionTypes,
   isValidSessionType,
   getSessionTypeName,
   isCompetitiveSession,
   getSessionTypePriority,
-  type SessionType,
 } from '../session-types';
 
 describe('Session Type Normalization Properties', () => {
@@ -44,16 +44,16 @@ describe('Session Type Normalization Properties', () => {
   test('Property 2a: Known event types always map consistently', () => {
     // Known mappings from the implementation
     const knownMappings: Array<[number, SessionType]> = [
-      [1, 'race'],
-      [2, 'practice'],
-      [3, 'practice'],
-      [4, 'practice'],
-      [5, 'qualifying'],
-      [6, 'qualifying'],
-      [7, 'time_trial'],
-      [8, 'time_trial'],
-      [9, 'race'],
-      [10, 'race'],
+      [1, SessionType.RACE],
+      [2, SessionType.PRACTICE],
+      [3, SessionType.QUALIFYING],
+      [4, SessionType.TIME_TRIAL],
+      [5, SessionType.RACE],
+      [6, SessionType.QUALIFYING],
+      [7, SessionType.TIME_TRIAL],
+      [8, SessionType.TIME_TRIAL],
+      [9, SessionType.RACE],
+      [10, SessionType.RACE],
     ];
 
     fc.assert(
@@ -72,22 +72,22 @@ describe('Session Type Normalization Properties', () => {
 
   test('Property 2b: Session name patterns are recognized correctly', () => {
     const sessionNamePatterns: Array<[string, SessionType]> = [
-      ['Practice Session', 'practice'],
-      ['Warmup', 'practice'],
-      ['Warm-up', 'practice'],
-      ['Qualifying', 'qualifying'],
-      ['Qual', 'qualifying'],
-      ['Grid Session', 'qualifying'],
-      ['Time Trial', 'time_trial'],
-      ['Time-Trial', 'time_trial'],
-      ['TT', 'time_trial'],
-      ['Lone Qualify', 'time_trial'],
-      ['Hot Lap', 'time_trial'],
-      ['Race', 'race'],
-      ['Feature Race', 'race'],
-      ['Main Event', 'race'],
-      ['Heat Race', 'race'],
-      ['Final', 'race'],
+      ['Practice Session', SessionType.PRACTICE],
+      ['Warmup', SessionType.PRACTICE],
+      ['Warm-up', SessionType.PRACTICE],
+      ['Qualifying', SessionType.QUALIFYING],
+      ['Qual', SessionType.QUALIFYING],
+      ['Grid Session', SessionType.QUALIFYING],
+      ['Time Trial', SessionType.TIME_TRIAL],
+      ['Time-Trial', SessionType.TIME_TRIAL],
+      ['TT', SessionType.TIME_TRIAL],
+      ['Lone Qualify', SessionType.TIME_TRIAL],
+      ['Hot Lap', SessionType.TIME_TRIAL],
+      ['Race', SessionType.RACE],
+      ['Feature Race', SessionType.RACE],
+      ['Main Event', SessionType.RACE],
+      ['Heat Race', SessionType.RACE],
+      ['Final', SessionType.RACE],
     ];
 
     fc.assert(
@@ -104,7 +104,7 @@ describe('Session Type Normalization Properties', () => {
   });
 
   test('Property 2c: Case insensitive pattern matching', () => {
-    const caseVariations = ['practice', 'PRACTICE', 'Practice', 'pRaCtIcE'];
+    const caseVariations = [SessionType.PRACTICE, SessionType.PRACTICE, SessionType.PRACTICE, SessionType.PRACTICE];
     
     fc.assert(
       fc.property(
@@ -171,7 +171,7 @@ describe('Session Type Normalization Properties', () => {
         (sessionType) => {
           const isCompetitive = isCompetitiveSession(sessionType);
           
-          if (sessionType === 'practice') {
+          if (sessionType === SessionType.PRACTICE) {
             expect(isCompetitive).toBe(false);
           } else {
             expect(isCompetitive).toBe(true);

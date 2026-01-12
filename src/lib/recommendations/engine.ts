@@ -6,6 +6,7 @@ import {
   RecommendationResponse,
   ExperienceSummary
 } from './types';
+import { RecommendationModeHelper } from '../types/recommendation';
 import { scoringAlgorithm } from './scoring';
 import { licenseFilter } from './license-filter';
 import { prepareUserHistory, getCurrentRacingOpportunities, prefetchRecommendationData } from './data-preparation';
@@ -22,7 +23,7 @@ export class RecommendationEngine {
    */
   async generateRecommendations(
     userId: string, 
-    mode: RecommendationMode = 'balanced'
+    mode: RecommendationMode = RecommendationModeHelper.getDefault()
   ): Promise<ScoredRecommendation[]> {
     // Prepare user history data
     const userHistory = await prepareUserHistory(userId);
@@ -77,7 +78,7 @@ export class RecommendationEngine {
     } = {}
   ): Promise<RecommendationResponse> {
     const {
-      mode = 'balanced',
+      mode = RecommendationModeHelper.getDefault(),
       category,
       minScore = 0,
       maxResults = 20
@@ -155,7 +156,7 @@ export class RecommendationEngine {
     userId: string,
     seriesId: number,
     trackId: number,
-    mode: RecommendationMode = 'balanced'
+    mode: RecommendationMode = RecommendationModeHelper.getDefault()
   ): Promise<{
     opportunity: RacingOpportunity | null;
     score: ScoredRecommendation['score'] | null;

@@ -1,7 +1,8 @@
 import { eq, and, gte, lte, avg, count, sum, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from './index';
 import { raceResults, scheduleEntries } from './schema';
-import type { GroupingType, PerformanceMetric, SessionType } from '@/types';
+import type { GroupingType, PerformanceMetric } from '@/types';
+import { SessionType } from '../types/session';
 
 /**
  * Calculate performance metrics grouped by series, track, or series+track combinations
@@ -257,7 +258,7 @@ export async function getSeriesTrackPerformance(
         eq(raceResults.userId, userId),
         eq(raceResults.seriesId, seriesId),
         eq(raceResults.trackId, trackId),
-        eq(raceResults.sessionType, 'race') // Only count actual races
+        eq(raceResults.sessionType, SessionType.RACE) // Only count actual races
       )
     );
 
@@ -394,7 +395,7 @@ export async function getGlobalSeriesTrackStats(seriesId: number, trackId: numbe
       and(
         eq(raceResults.seriesId, seriesId),
         eq(raceResults.trackId, trackId),
-        eq(raceResults.sessionType, 'race'),
+        eq(raceResults.sessionType, SessionType.RACE),
         // Only recent data (last 3 months for relevance)
         gte(raceResults.raceDate, new Date(Date.now() - 90 * 24 * 60 * 60 * 1000))
       )

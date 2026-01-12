@@ -16,7 +16,7 @@ export interface SessionData {
  * Create a signed session token
  */
 export async function createSessionToken(user: UserProfile): Promise<string> {
-  const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
+  const secret = new TextEncoder().encode(process.env.SESSION_SECRET!);
   const expiresAt = Date.now() + SESSION_DURATION;
   
   const token = await new SignJWT({
@@ -38,7 +38,7 @@ export async function createSessionToken(user: UserProfile): Promise<string> {
  */
 export async function verifySessionToken(token: string): Promise<SessionData | null> {
   try {
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
+    const secret = new TextEncoder().encode(process.env.SESSION_SECRET!);
     const { payload } = await jwtVerify(token, secret);
     
     const sessionData = payload as unknown as SessionData;

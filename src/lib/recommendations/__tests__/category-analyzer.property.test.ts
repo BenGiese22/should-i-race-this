@@ -50,16 +50,17 @@ import { db } from '../../db';
 const mockDb = db as any;
 
 // Test data generators
-const categoryArb = fc.constantFrom('oval', 'road', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
+const categoryArb = fc.constantFrom('oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
 
 const categoryDistributionArb = fc.record({
-  road: fc.integer({ min: 0, max: 100 }),
+  sports_car: fc.integer({ min: 0, max: 100 }),
+  formula_car: fc.integer({ min: 0, max: 100 }),
   oval: fc.integer({ min: 0, max: 100 }),
   dirt_road: fc.integer({ min: 0, max: 100 }),
   dirt_oval: fc.integer({ min: 0, max: 100 }),
 }).map(dist => ({
   ...dist,
-  total: dist.road + dist.oval + dist.dirt_road + dist.dirt_oval
+  total: dist.sports_car + dist.formula_car + dist.oval + dist.dirt_road + dist.dirt_oval
 }));
 
 const raceResultArb = fc.record({
@@ -113,25 +114,29 @@ describe('Primary Category Detection Properties', () => {
           expect(result).toHaveProperty('primaryCategory');
           expect(result).toHaveProperty('confidence');
           expect(result).toHaveProperty('raceDistribution');
-          expect(['road', 'oval', 'dirt_road', 'dirt_oval']).toContain(result.primaryCategory);
+          expect(['sports_car', 'formula_car', 'oval', 'dirt_road', 'dirt_oval']).toContain(result.primaryCategory);
           expect(result.confidence).toBeGreaterThanOrEqual(0);
           expect(result.confidence).toBeLessThanOrEqual(1);
 
           // Test the 70% threshold logic
           if (distribution.total === 0) {
-            // Should default to road when no data
-            expect(result.primaryCategory).toBe('road');
+            // Should default to sports_car when no data
+            expect(result.primaryCategory).toBe('sports_car');
             expect(result.confidence).toBe(0);
           } else {
-            const roadPercentage = distribution.road / distribution.total;
+            const sportsCarPercentage = distribution.sports_car / distribution.total;
+            const formulaCarPercentage = distribution.formula_car / distribution.total;
             const ovalPercentage = distribution.oval / distribution.total;
             const dirtRoadPercentage = distribution.dirt_road / distribution.total;
             const dirtOvalPercentage = distribution.dirt_oval / distribution.total;
 
             // Check 70% threshold logic
-            if (roadPercentage >= 0.7) {
-              expect(result.primaryCategory).toBe('road');
-              expect(result.confidence).toBeCloseTo(roadPercentage, 5);
+            if (sportsCarPercentage >= 0.7) {
+              expect(result.primaryCategory).toBe('sports_car');
+              expect(result.confidence).toBeCloseTo(sportsCarPercentage, 5);
+            } else if (formulaCarPercentage >= 0.7) {
+              expect(result.primaryCategory).toBe('formula_car');
+              expect(result.confidence).toBeCloseTo(formulaCarPercentage, 5);
             } else if (ovalPercentage >= 0.7) {
               expect(result.primaryCategory).toBe('oval');
               expect(result.confidence).toBeCloseTo(ovalPercentage, 5);
@@ -144,7 +149,8 @@ describe('Primary Category Detection Properties', () => {
             } else {
               // Should be the category with most races
               const maxCount = Math.max(
-                distribution.road,
+                distribution.sports_car,
+                distribution.formula_car,
                 distribution.oval,
                 distribution.dirt_road,
                 distribution.dirt_oval
@@ -154,9 +160,12 @@ describe('Primary Category Detection Properties', () => {
                 let expectedCategory: Category;
                 let expectedConfidence: number;
 
-                if (distribution.road === maxCount) {
-                  expectedCategory = 'road';
-                  expectedConfidence = roadPercentage;
+                if (distribution.sports_car === maxCount) {
+                  expectedCategory = 'sports_car';
+                  expectedConfidence = sportsCarPercentage;
+                } else if (distribution.formula_car === maxCount) {
+                  expectedCategory = 'formula_car';
+                  expectedConfidence = formulaCarPercentage;
                 } else if (distribution.oval === maxCount) {
                   expectedCategory = 'oval';
                   expectedConfidence = ovalPercentage;
@@ -210,7 +219,8 @@ describe('Primary Category Detection Properties', () => {
 
           // Calculate expected distribution
           const expected: CategoryDistribution = {
-            road: 0,
+            sports_car: 0,
+            formula_car: 0,
             oval: 0,
             dirt_road: 0,
             dirt_oval: 0,
@@ -233,7 +243,8 @@ describe('Primary Category Detection Properties', () => {
           });
 
           // Verify the distribution matches expected values
-          expect(distribution.road).toBe(expected.road);
+          expect(distribution.sports_car).toBe(expected.sports_car);
+          expect(distribution.formula_car).toBe(expected.formula_car);
           expect(distribution.oval).toBe(expected.oval);
           expect(distribution.dirt_road).toBe(expected.dirt_road);
           expect(distribution.dirt_oval).toBe(expected.dirt_oval);
@@ -241,12 +252,13 @@ describe('Primary Category Detection Properties', () => {
 
           // Verify total is sum of all categories
           expect(distribution.total).toBe(
-            distribution.road + distribution.oval + 
+            distribution.sports_car + distribution.formula_car + distribution.oval + 
             distribution.dirt_road + distribution.dirt_oval
           );
 
           // Verify all counts are non-negative
-          expect(distribution.road).toBeGreaterThanOrEqual(0);
+          expect(distribution.sports_car).toBeGreaterThanOrEqual(0);
+          expect(distribution.formula_car).toBeGreaterThanOrEqual(0);
           expect(distribution.oval).toBeGreaterThanOrEqual(0);
           expect(distribution.dirt_road).toBeGreaterThanOrEqual(0);
           expect(distribution.dirt_oval).toBeGreaterThanOrEqual(0);
@@ -262,22 +274,24 @@ describe('Primary Category Detection Properties', () => {
       fc.asyncProperty(
         fc.uuid(),
         fc.record({
-          road: fc.integer({ min: 1, max: 30 }),
+          sports_car: fc.integer({ min: 1, max: 30 }),
+          formula_car: fc.integer({ min: 1, max: 30 }),
           oval: fc.integer({ min: 1, max: 30 }),
           dirt_road: fc.integer({ min: 1, max: 30 }),
           dirt_oval: fc.integer({ min: 1, max: 30 }),
         }).filter(dist => {
           // Ensure no category has 70%+ to test fallback logic
-          const total = dist.road + dist.oval + dist.dirt_road + dist.dirt_oval;
+          const total = dist.sports_car + dist.formula_car + dist.oval + dist.dirt_road + dist.dirt_oval;
           return (
-            dist.road / total < 0.7 &&
+            dist.sports_car / total < 0.7 &&
+            dist.formula_car / total < 0.7 &&
             dist.oval / total < 0.7 &&
             dist.dirt_road / total < 0.7 &&
             dist.dirt_oval / total < 0.7
           );
         }),
         async (userId, distribution) => {
-          const total = distribution.road + distribution.oval + distribution.dirt_road + distribution.dirt_oval;
+          const total = distribution.sports_car + distribution.formula_car + distribution.oval + distribution.dirt_road + distribution.dirt_oval;
           
           // Setup mock to return the distribution data
           const mockResults = Object.entries(distribution)
@@ -294,7 +308,8 @@ describe('Primary Category Detection Properties', () => {
 
           // Find the category with the most races
           const maxCount = Math.max(
-            distribution.road,
+            distribution.sports_car,
+            distribution.formula_car,
             distribution.oval,
             distribution.dirt_road,
             distribution.dirt_oval
@@ -367,11 +382,12 @@ describe('Primary Category Detection Properties', () => {
 
           const result = await categoryAnalyzer.detectPrimaryCategory(userId);
 
-          // Should default to road with 0 confidence when no data
-          expect(result.primaryCategory).toBe('road');
+          // Should default to sports_car with 0 confidence when no data
+          expect(result.primaryCategory).toBe('sports_car');
           expect(result.confidence).toBe(0);
           expect(result.raceDistribution.total).toBe(0);
-          expect(result.raceDistribution.road).toBe(0);
+          expect(result.raceDistribution.sports_car).toBe(0);
+          expect(result.raceDistribution.formula_car).toBe(0);
           expect(result.raceDistribution.oval).toBe(0);
           expect(result.raceDistribution.dirt_road).toBe(0);
           expect(result.raceDistribution.dirt_oval).toBe(0);
@@ -394,7 +410,8 @@ describe('Primary Category Detection Properties', () => {
 
           const mockResults = [
             { category: dominantCategory, raceCount: dominantCount },
-            ...(dominantCategory !== 'road' ? [{ category: 'road', raceCount: otherCount }] : []),
+            ...(dominantCategory !== 'sports_car' ? [{ category: 'sports_car', raceCount: otherCount }] : []),
+            ...(dominantCategory !== 'formula_car' ? [{ category: 'formula_car', raceCount: otherCount }] : []),
             ...(dominantCategory !== 'oval' ? [{ category: 'oval', raceCount: otherCount }] : []),
             ...(dominantCategory !== 'dirt_road' ? [{ category: 'dirt_road', raceCount: otherCount }] : []),
             ...(dominantCategory !== 'dirt_oval' ? [{ category: 'dirt_oval', raceCount: otherCount }] : []),
@@ -413,7 +430,7 @@ describe('Primary Category Detection Properties', () => {
           expect(result.confidence).toBeGreaterThan(0.7);
 
           // Verify all categories are valid
-          expect(['road', 'oval', 'dirt_road', 'dirt_oval']).toContain(result.primaryCategory);
+          expect(['sports_car', 'formula_car', 'oval', 'dirt_road', 'dirt_oval']).toContain(result.primaryCategory);
         }
       ),
       { numRuns: 100 }
