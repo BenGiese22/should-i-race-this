@@ -16,7 +16,13 @@ import {
 } from '../types';
 
 // Test data generators
-const categoryArb = fc.constantFrom('oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
+const categoryArb = fc.constantFrom(
+  Category.OVAL, 
+  Category.SPORTS_CAR, 
+  Category.FORMULA_CAR, 
+  Category.DIRT_OVAL, 
+  Category.DIRT_ROAD
+) as fc.Arbitrary<Category>;
 const licenseLevelArb = fc.constantFrom(
   LicenseLevel.ROOKIE, 
   LicenseLevel.D, 
@@ -336,7 +342,13 @@ describe('License-Based Access Control Properties', () => {
         fc.array(licenseClassArb, { minLength: 2, maxLength: 5 }), // Multiple categories
         async (opportunities, licenseClasses) => {
           // Ensure we have opportunities across multiple categories
-          const categories: Category[] = ['oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road'];
+          const categories: Category[] = [
+            Category.OVAL, 
+            Category.SPORTS_CAR, 
+            Category.FORMULA_CAR, 
+            Category.DIRT_OVAL, 
+            Category.DIRT_ROAD
+          ];
           
           // Create user history with multiple license categories
           const userHistory: UserHistory = {

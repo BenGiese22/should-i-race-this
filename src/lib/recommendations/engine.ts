@@ -374,9 +374,9 @@ export class RecommendationEngine {
         .slice(0, 10); // Top 10 for each mode
 
     return {
-      balanced: scoreOpportunities('balanced'),
-      iRatingPush: scoreOpportunities('irating_push'),
-      safetyRecovery: scoreOpportunities('safety_recovery')
+      balanced: scoreOpportunities(RecommendationMode.BALANCED),
+      iRatingPush: scoreOpportunities(RecommendationMode.IRATING_PUSH),
+      safetyRecovery: scoreOpportunities(RecommendationMode.SAFETY_RECOVERY)
     };
   }
 
