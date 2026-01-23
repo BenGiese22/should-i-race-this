@@ -49,7 +49,9 @@ export const raceResults = pgTable('race_results', {
   seriesName: varchar('series_name', { length: 255 }).notNull(),
   trackId: integer('track_id').notNull(),
   trackName: varchar('track_name', { length: 255 }).notNull(),
+  // Session type derived from iRacing event_type: 2=practice, 3=qualifying, 4=time_trial, 5=race
   sessionType: varchar('session_type', { length: 20 }).notNull(), // 'practice', 'qualifying', 'time_trial', 'race'
+  // -1 indicates no qualifying (practice sessions, late joins, rolling starts)
   startingPosition: integer('starting_position'),
   finishingPosition: integer('finishing_position'),
   // Computed column for position delta (starting - finishing)
@@ -57,13 +59,18 @@ export const raceResults = pgTable('race_results', {
     sql`starting_position - finishing_position`
   ),
   incidents: integer('incidents').notNull().default(0),
+  // SOF: positive for official races, -1 for unofficial/practice sessions
   strengthOfField: integer('strength_of_field'),
   raceDate: timestamp('race_date').notNull(),
   seasonYear: integer('season_year').notNull(), // iRacing season year (e.g., 2024)
   seasonQuarter: integer('season_quarter').notNull(), // iRacing season quarter (1, 2, 3, 4)
   raceWeekNum: integer('race_week_num'), // iRacing race week number (0-based)
   raceLength: integer('race_length'), // in minutes
-  rawData: jsonb('raw_data'), // store full iRacing response
+  // Full iRacing API response - contains additional fields like:
+  // - official_session: boolean (authoritative source for official status)
+  // - event_type: number, event_type_name: string
+  // - laps_complete, average_lap, best_lap_time, etc.
+  rawData: jsonb('raw_data'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   // Indexes for performance

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { RecommendationDetail } from '../RecommendationDetail';
 import { ScoredOpportunity } from '@/lib/recommendations/types';
 import fc from 'fast-check';
@@ -68,42 +68,47 @@ describe('Modal Click-Outside Behavior Property Tests', () => {
           score: fc.integer({ min: 0, max: 100 })
         }),
         ({ clickX, clickY, seriesName, trackName, score }) => {
-          const testRecommendation = {
-            ...mockRecommendation,
-            seriesName,
-            trackName,
-            score: {
-              ...mockRecommendation.score,
-              overall: score
+          try {
+            const testRecommendation = {
+              ...mockRecommendation,
+              seriesName,
+              trackName,
+              score: {
+                ...mockRecommendation.score,
+                overall: score
+              }
+            };
+
+            const mockOnClose = jest.fn();
+
+            // Render the modal (which should be open)
+            const { container } = render(
+              <RecommendationDetail
+                recommendation={testRecommendation}
+                onClose={mockOnClose}
+              />
+            );
+
+            // Verify modal is rendered (open state)
+            const modal = screen.getByText(seriesName);
+            expect(modal).toBeInTheDocument();
+
+            // Find the backdrop (the overlay behind the modal)
+            // The component uses bg-black/50 (Tailwind's opacity syntax)
+            const backdrop = container.querySelector('.fixed.inset-0');
+            expect(backdrop).toBeInTheDocument();
+
+            // Simulate click outside modal (on the backdrop)
+            if (backdrop) {
+              fireEvent.mouseDown(backdrop);
             }
-          };
 
-          const mockOnClose = jest.fn();
-          
-          // Render the modal (which should be open)
-          const { container } = render(
-            <RecommendationDetail 
-              recommendation={testRecommendation} 
-              onClose={mockOnClose} 
-            />
-          );
-
-          // Verify modal is rendered (open state)
-          const modal = screen.getByText(seriesName);
-          expect(modal).toBeInTheDocument();
-
-          // Find the backdrop (the overlay behind the modal)
-          const backdrop = container.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
-          expect(backdrop).toBeInTheDocument();
-
-          // Simulate click outside modal (on the backdrop)
-          if (backdrop) {
-            fireEvent.mouseDown(backdrop);
+            // Property: Modal should close when clicked outside
+            // The onClose callback should be called
+            expect(mockOnClose).toHaveBeenCalled();
+          } finally {
+            cleanup();
           }
-
-          // Property: Modal should close when clicked outside
-          // The onClose callback should be called
-          expect(mockOnClose).toHaveBeenCalled();
         }
       ),
       { numRuns: 100 }

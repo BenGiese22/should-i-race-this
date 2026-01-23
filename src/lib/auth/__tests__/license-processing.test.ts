@@ -72,11 +72,14 @@ describe('License Processing Tests', () => {
       expect(mapLicenseLevelFromGroupName('Invalid Level')).toBe('Rookie');
     });
 
-    test('should handle numeric input by falling back to legacy mapping', () => {
-      // This tests the fallback to the old mapLicenseLevel function
+    test('should handle numeric input (iRacing license_group values)', () => {
+      // iRacing license_group mapping: 1=Rookie, 2=D, 3=C, 4=B, 5=A, 6=Pro
       expect(mapLicenseLevelFromGroupName(1)).toBe('Rookie');
       expect(mapLicenseLevelFromGroupName(2)).toBe('D');
-      expect(mapLicenseLevelFromGroupName(6)).toBe('C');
+      expect(mapLicenseLevelFromGroupName(3)).toBe('C');
+      expect(mapLicenseLevelFromGroupName(4)).toBe('B');
+      expect(mapLicenseLevelFromGroupName(5)).toBe('A');
+      expect(mapLicenseLevelFromGroupName(6)).toBe('Pro');
     });
 
     test('should handle invalid input types', () => {

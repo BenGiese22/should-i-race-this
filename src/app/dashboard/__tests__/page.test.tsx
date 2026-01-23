@@ -68,6 +68,37 @@ const mockAnalyticsData = [
   },
 ];
 
+const mockRaceDetailsData = [
+  {
+    id: 'race-1',
+    subsessionId: 12345,
+    seriesId: 1,
+    seriesName: 'Skip Barber Formula 2000',
+    trackId: 101,
+    trackName: 'Road Atlanta',
+    raceDate: '2024-01-15T14:00:00Z',
+    startingPosition: 8,
+    finishingPosition: 5,
+    positionDelta: 3,
+    incidents: 1,
+    strengthOfField: 1450,
+  },
+  {
+    id: 'race-2',
+    subsessionId: 12346,
+    seriesId: 1,
+    seriesName: 'Skip Barber Formula 2000',
+    trackId: 103,
+    trackName: 'Watkins Glen',
+    raceDate: '2024-01-14T18:00:00Z',
+    startingPosition: 10,
+    finishingPosition: 7,
+    positionDelta: 3,
+    incidents: 2,
+    strengthOfField: 1520,
+  },
+];
+
 describe('Dashboard Page', () => {
   beforeEach(() => {
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
@@ -119,33 +150,34 @@ describe('Dashboard Page', () => {
       render(<Dashboard />);
 
       expect(screen.getByText('Group By')).toBeInTheDocument();
-      expect(screen.getByText('Session Type')).toBeInTheDocument();
       expect(screen.getByText('Search')).toBeInTheDocument();
-      
-      // Wait for initial load to complete, then check for Refresh button
+
+      // Wait for initial load to complete, then check for Sync button
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
       });
-      
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
+
+      expect(screen.getByText('Sync')).toBeInTheDocument();
     });
 
-    it('should have group by toggle buttons', async () => {
+    it('should have group by dropdown', async () => {
       render(<Dashboard />);
 
-      expect(screen.getByText('Series')).toBeInTheDocument();
-      expect(screen.getByText('Track')).toBeInTheDocument();
-      expect(screen.getByText('Series + Track')).toBeInTheDocument();
-    });
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByText('Loading analytics...')).not.toBeInTheDocument();
+      });
 
-    it('should have session type dropdown', async () => {
-      render(<Dashboard />);
+      // Default value is 'series' with text 'Series'
+      const groupBySelect = screen.getByDisplayValue('Series');
+      expect(groupBySelect).toBeInTheDocument();
 
-      const sessionSelect = screen.getByDisplayValue('Race');
-      expect(sessionSelect).toBeInTheDocument();
-      
-      fireEvent.change(sessionSelect, { target: { value: 'qualifying' } });
-      expect(sessionSelect).toHaveValue('qualifying');
+      // Verify dropdown has all options
+      fireEvent.change(groupBySelect, { target: { value: 'track' } });
+      expect(groupBySelect).toHaveValue('track');
+
+      fireEvent.change(groupBySelect, { target: { value: 'series_track' } });
+      expect(groupBySelect).toHaveValue('series_track');
     });
 
     it('should have search input with placeholder', async () => {
@@ -202,13 +234,13 @@ describe('Dashboard Page', () => {
       render(<Dashboard />);
 
       await waitFor(() => {
-        // Low incidents should be green
+        // Low incidents (1-2 range) should be teal
         const lowIncidents = screen.getByText('1.5');
-        expect(lowIncidents).toHaveClass('text-racing-green');
+        expect(lowIncidents).toHaveClass('text-teal-500');
 
-        // Medium incidents should be yellow (2-4 range)
+        // Medium incidents (2-4 range) should be amber
         const mediumIncidents = screen.getByText('3.2');
-        expect(mediumIncidents).toHaveClass('text-racing-yellow');
+        expect(mediumIncidents).toHaveClass('text-amber-500');
       });
     });
   });
@@ -249,11 +281,16 @@ describe('Dashboard Page', () => {
       });
     });
 
-    it('should change group by when toggle buttons are clicked', async () => {
+    it('should change group by when dropdown is changed', async () => {
       render(<Dashboard />);
 
-      const trackButton = screen.getByText('Track');
-      fireEvent.click(trackButton);
+      // Wait for loading to finish
+      await waitFor(() => {
+        expect(screen.queryByText('Loading analytics...')).not.toBeInTheDocument();
+      });
+
+      const groupBySelect = screen.getByDisplayValue('Series');
+      fireEvent.change(groupBySelect, { target: { value: 'track' } });
 
       // Should trigger new API call with track grouping
       await waitFor(() => {
@@ -263,19 +300,6 @@ describe('Dashboard Page', () => {
       });
     });
 
-    it('should change session type when dropdown is changed', async () => {
-      render(<Dashboard />);
-
-      const sessionSelect = screen.getByDisplayValue('Race');
-      fireEvent.change(sessionSelect, { target: { value: 'qualifying' } });
-
-      // Should trigger new API call with qualifying filter
-      await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining('sessionType=qualifying')
-        );
-      });
-    });
   });
 
   describe('Loading and Error States', () => {
@@ -307,7 +331,7 @@ describe('Dashboard Page', () => {
 
       await waitFor(() => {
         expect(screen.getByText('No Data Available')).toBeInTheDocument();
-        expect(screen.getByText('Sync Race Data')).toBeInTheDocument();
+        expect(screen.getByText('Sync Race Data from iRacing')).toBeInTheDocument();
       });
     });
 
@@ -326,8 +350,8 @@ describe('Dashboard Page', () => {
     });
   });
 
-  describe('Refresh Functionality', () => {
-    it('should refresh data when refresh button is clicked', async () => {
+  describe('Sync Functionality', () => {
+    it('should sync data when sync button is clicked', async () => {
       render(<Dashboard />);
 
       // Wait for initial load to complete
@@ -335,34 +359,37 @@ describe('Dashboard Page', () => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
       });
 
-      const refreshButton = screen.getByText('Refresh');
-      fireEvent.click(refreshButton);
+      const syncButton = screen.getByText('Sync');
+      fireEvent.click(syncButton);
 
-      // Should make new API call
+      // Should make sync API call (POST to /api/data/sync)
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledTimes(2); // Initial load + refresh
+        expect(fetch).toHaveBeenCalledWith('/api/data/sync', expect.objectContaining({
+          method: 'POST',
+        }));
       });
     });
 
-    it('should disable refresh button while loading', async () => {
+    it('should disable sync button while loading', async () => {
       (fetch as jest.Mock).mockImplementation(() => new Promise(() => {})); // Never resolves
 
       render(<Dashboard />);
 
-      // Wait for loading state
+      // Sync button should be disabled while analytics are loading
       await waitFor(() => {
-        const loadingButton = screen.getByText('Loading...');
-        expect(loadingButton).toBeDisabled();
+        const syncButton = screen.getByText('Sync');
+        expect(syncButton.closest('button')).toBeDisabled();
       });
     });
   });
 
-  describe('Results Summary', () => {
-    it('should display results count', async () => {
+  describe('Results Summary and Pagination', () => {
+    it('should display results count with pagination info', async () => {
       render(<Dashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('Showing 2 of 2 results')).toBeInTheDocument();
+        // New format: "Showing 1-2 of 2 results"
+        expect(screen.getByText(/Showing 1-2 of 2 results/)).toBeInTheDocument();
       });
     });
 
@@ -378,6 +405,23 @@ describe('Dashboard Page', () => {
         expect(screen.getByText(/for "Skip"/)).toBeInTheDocument();
       });
     });
+
+    it('should have page size selector', async () => {
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Check for page size selector
+      const pageSizeSelect = screen.getByLabelText('Rows:');
+      expect(pageSizeSelect).toBeInTheDocument();
+      expect(pageSizeSelect).toHaveValue('10');
+
+      // Change page size
+      fireEvent.change(pageSizeSelect, { target: { value: '25' } });
+      expect(pageSizeSelect).toHaveValue('25');
+    });
   });
 
   describe('Responsive Design', () => {
@@ -385,7 +429,7 @@ describe('Dashboard Page', () => {
       render(<Dashboard />);
 
       const controlsGrid = screen.getByText('Group By').closest('div')?.parentElement;
-      expect(controlsGrid).toHaveClass('grid', 'grid-cols-1', 'md:grid-cols-4');
+      expect(controlsGrid).toHaveClass('grid', 'grid-cols-1', 'md:grid-cols-3');
     });
 
     it('should have responsive button layout', async () => {
@@ -404,5 +448,204 @@ describe('Dashboard Page', () => {
         expect(tableContainer).toHaveClass('overflow-x-auto');
       });
     });
+  });
+
+  describe('Expandable Row Details', () => {
+    it('should display expand icons on each row', async () => {
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Check that rows have expand indicators (chevron icons)
+      const table = screen.getByRole('table');
+      const rows = table.querySelectorAll('tbody tr');
+      expect(rows.length).toBeGreaterThan(0);
+    });
+
+    it('should expand row and fetch race details when clicked', async () => {
+      // Setup fetch to return different data for analytics and races
+      (fetch as jest.Mock).mockImplementation((url) => {
+        if (url.includes('/api/data/analytics/races')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ races: mockRaceDetailsData }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ analytics: mockAnalyticsData }),
+        });
+      });
+
+      render(<Dashboard />);
+
+      // Wait for analytics data to load
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Click on the first row to expand it
+      const skipBarberRow = screen.getByText('Skip Barber Formula 2000').closest('tr');
+      expect(skipBarberRow).toBeInTheDocument();
+
+      if (skipBarberRow) {
+        fireEvent.click(skipBarberRow);
+      }
+
+      // Should fetch race details
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining('/api/data/analytics/races')
+        );
+      });
+    });
+
+    it('should display loading state while fetching race details', async () => {
+      // Setup fetch to delay race details
+      (fetch as jest.Mock).mockImplementation((url) => {
+        if (url.includes('/api/data/analytics/races')) {
+          return new Promise(() => {}); // Never resolves
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ analytics: mockAnalyticsData }),
+        });
+      });
+
+      render(<Dashboard />);
+
+      // Wait for analytics data to load
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Click on the first row to expand it
+      const skipBarberRow = screen.getByText('Skip Barber Formula 2000').closest('tr');
+      if (skipBarberRow) {
+        fireEvent.click(skipBarberRow);
+      }
+
+      // Should show loading state
+      await waitFor(() => {
+        expect(screen.getByText('Loading race details...')).toBeInTheDocument();
+      });
+    });
+
+    it('should collapse row when clicked again', async () => {
+      (fetch as jest.Mock).mockImplementation((url) => {
+        if (url.includes('/api/data/analytics/races')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ races: mockRaceDetailsData }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ analytics: mockAnalyticsData }),
+        });
+      });
+
+      render(<Dashboard />);
+
+      // Wait for analytics data to load
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Click to expand
+      const skipBarberRow = screen.getByText('Skip Barber Formula 2000').closest('tr');
+      if (skipBarberRow) {
+        fireEvent.click(skipBarberRow);
+      }
+
+      // Wait for expansion
+      await waitFor(() => {
+        expect(screen.getByText('Road Atlanta')).toBeInTheDocument();
+      });
+
+      // Click again to collapse
+      if (skipBarberRow) {
+        fireEvent.click(skipBarberRow);
+      }
+
+      // Race details should no longer be visible
+      await waitFor(() => {
+        // The track name from race details should not be visible in the expanded area
+        // Note: Road Atlanta may still appear as part of mock data, so check for nested table
+        const nestedTables = document.querySelectorAll('.max-h-52.overflow-y-auto table');
+        expect(nestedTables.length).toBe(0);
+      });
+    });
+
+    it('should display race details with correct columns', async () => {
+      (fetch as jest.Mock).mockImplementation((url) => {
+        if (url.includes('/api/data/analytics/races')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ races: mockRaceDetailsData }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ analytics: mockAnalyticsData }),
+        });
+      });
+
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Click to expand
+      const skipBarberRow = screen.getByText('Skip Barber Formula 2000').closest('tr');
+      if (skipBarberRow) {
+        fireEvent.click(skipBarberRow);
+      }
+
+      // Check for expanded detail headers
+      await waitFor(() => {
+        expect(screen.getByText('Date')).toBeInTheDocument();
+        expect(screen.getByText('Start')).toBeInTheDocument();
+        expect(screen.getByText('Finish')).toBeInTheDocument();
+        expect(screen.getByText('Inc')).toBeInTheDocument();
+        expect(screen.getByText('SOF')).toBeInTheDocument();
+      });
+    });
+
+    it('should show "no data" message when no race details exist', async () => {
+      (fetch as jest.Mock).mockImplementation((url) => {
+        if (url.includes('/api/data/analytics/races')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ races: [] }),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ analytics: mockAnalyticsData }),
+        });
+      });
+
+      render(<Dashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
+      });
+
+      // Click to expand
+      const skipBarberRow = screen.getByText('Skip Barber Formula 2000').closest('tr');
+      if (skipBarberRow) {
+        fireEvent.click(skipBarberRow);
+      }
+
+      // Should show no data message
+      await waitFor(() => {
+        expect(screen.getByText('No individual race data found')).toBeInTheDocument();
+      });
+    });
+
   });
 });

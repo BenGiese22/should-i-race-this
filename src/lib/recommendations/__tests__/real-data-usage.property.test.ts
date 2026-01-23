@@ -20,7 +20,7 @@ import {
 } from '../types';
 
 // Test data generators
-const categoryArb = fc.constantFrom('oval', 'road', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
+const categoryArb = fc.constantFrom('oval', 'sports_car', 'formula_car', 'dirt_oval', 'dirt_road') as fc.Arbitrary<Category>;
 const licenseLevelArb = fc.constantFrom('rookie', 'D', 'C', 'B', 'A', 'pro') as fc.Arbitrary<LicenseLevel>;
 
 const timeSlotArb = fc.record({
@@ -32,15 +32,15 @@ const timeSlotArb = fc.record({
 
 const userOverallStatsArb = fc.record({
   totalRaces: fc.integer({ min: 1, max: 1000 }),
-  avgIncidentsPerRace: fc.float({ min: 0, max: Math.fround(10) }),
-  avgPositionDelta: fc.float({ min: -20, max: Math.fround(20) }),
-  overallConsistency: fc.float({ min: 1, max: Math.fround(25) })
+  avgIncidentsPerRace: fc.float({ min: 0, max: Math.fround(10), noNaN: true, noDefaultInfinity: true }),
+  avgPositionDelta: fc.float({ min: -20, max: Math.fround(20), noNaN: true, noDefaultInfinity: true }),
+  overallConsistency: fc.float({ min: 1, max: Math.fround(25), noNaN: true, noDefaultInfinity: true })
 }) as fc.Arbitrary<UserOverallStats>;
 
 const licenseClassArb = fc.record({
   category: categoryArb,
   level: licenseLevelArb,
-  safetyRating: fc.float({ min: Math.fround(1.0), max: Math.fround(4.99) }),
+  safetyRating: fc.float({ min: Math.fround(1.0), max: Math.fround(4.99), noNaN: true, noDefaultInfinity: true }),
   iRating: fc.integer({ min: 800, max: 4000 })
 }) as fc.Arbitrary<LicenseClass>;
 
@@ -57,8 +57,8 @@ describe('Real Data Usage Over Defaults Properties', () => {
       fc.asyncProperty(
         fc.integer({ min: 1, max: 1000 }), // seriesId
         fc.integer({ min: 1, max: 500 }), // trackId
-        fc.float({ min: -15, max: Math.fround(15) }), // Real position delta
-        fc.float({ min: 0, max: Math.fround(8) }), // Real incidents
+        fc.float({ min: -15, max: Math.fround(15), noNaN: true, noDefaultInfinity: true }), // Real position delta
+        fc.float({ min: 0, max: Math.fround(8), noNaN: true, noDefaultInfinity: true }), // Real incidents
         fc.integer({ min: 3, max: 50 }), // Sufficient race count
         userOverallStatsArb,
         fc.array(licenseClassArb, { minLength: 1, maxLength: 4 }),
@@ -70,7 +70,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
             trackId,
             trackName: 'Test Track',
             licenseRequired: 'D',
-            category: 'road',
+            category: 'sports_car',
             seasonYear: 2024,
             seasonQuarter: 1,
             raceWeekNum: 1,
@@ -139,9 +139,9 @@ describe('Real Data Usage Over Defaults Properties', () => {
       fc.asyncProperty(
         fc.integer({ min: 1, max: 1000 }), // seriesId
         fc.integer({ min: 1, max: 500 }), // trackId
-        fc.float({ min: 0.5, max: Math.fround(6) }), // Real global incidents (different from default)
-        fc.float({ min: 2, max: Math.fround(15) }), // Real global std dev (different from default)
-        fc.float({ min: 5, max: Math.fround(40) }), // Real attrition rate (different from default)
+        fc.float({ min: 0.5, max: Math.fround(6), noNaN: true, noDefaultInfinity: true }), // Real global incidents (different from default)
+        fc.float({ min: 2, max: Math.fround(15), noNaN: true, noDefaultInfinity: true }), // Real global std dev (different from default)
+        fc.float({ min: 5, max: Math.fround(40), noNaN: true, noDefaultInfinity: true }), // Real attrition rate (different from default)
         userOverallStatsArb,
         fc.array(licenseClassArb, { minLength: 1, maxLength: 4 }),
         async (seriesId, trackId, realGlobalIncidents, realGlobalStdDev, realAttritionRate, overallStats, licenseClasses) => {
@@ -152,7 +152,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
             trackId,
             trackName: 'Test Track',
             licenseRequired: 'D',
-            category: 'road',
+            category: 'sports_car',
             seasonYear: 2024,
             seasonQuarter: 1,
             raceWeekNum: 1,
@@ -215,8 +215,8 @@ describe('Real Data Usage Over Defaults Properties', () => {
       fc.asyncProperty(
         fc.integer({ min: 1, max: 1000 }), // seriesId
         fc.integer({ min: 1, max: 500 }), // trackId
-        fc.float({ min: -10, max: Math.fround(10) }), // Real overall position delta
-        fc.float({ min: 0, max: Math.fround(6) }), // Real overall incidents
+        fc.float({ min: -10, max: Math.fround(10), noNaN: true, noDefaultInfinity: true }), // Real overall position delta
+        fc.float({ min: 0, max: Math.fround(6), noNaN: true, noDefaultInfinity: true }), // Real overall incidents
         fc.integer({ min: 5, max: 100 }), // Sufficient overall race count
         fc.array(licenseClassArb, { minLength: 1, maxLength: 4 }),
         async (seriesId, trackId, realOverallDelta, realOverallIncidents, totalRaces, licenseClasses) => {
@@ -227,7 +227,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
             trackId,
             trackName: 'Test Track',
             licenseRequired: 'D',
-            category: 'road',
+            category: 'sports_car',
             seasonYear: 2024,
             seasonQuarter: 1,
             raceWeekNum: 1,
@@ -244,6 +244,15 @@ describe('Real Data Usage Over Defaults Properties', () => {
             }
           };
 
+          // Ensure we have a license matching the opportunity's category (sports_car)
+          const matchingLicense: LicenseClass = {
+            category: 'sports_car',
+            level: 'D',
+            safetyRating: 2.5,
+            iRating: 1500
+          };
+          const licenseClassesWithMatch = [matchingLicense, ...licenseClasses.filter(l => l.category !== 'sports_car')];
+
           // Create user with real overall performance data but no specific series-track data
           const userHistoryWithRealOverall: UserHistory = {
             userId: fc.sample(fc.uuid(), 1)[0],
@@ -254,7 +263,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
               avgPositionDelta: realOverallDelta,
               overallConsistency: 6.0
             },
-            licenseClasses
+            licenseClasses: licenseClassesWithMatch
           };
 
           // Create user with minimal overall data (should fall back to license-based defaults)
@@ -267,7 +276,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
               avgPositionDelta: 0,
               overallConsistency: 8.0
             },
-            licenseClasses
+            licenseClasses: licenseClassesWithMatch
           };
 
           const scoreWithRealOverall = scoringAlgorithm.calculateScore(opportunity, userHistoryWithRealOverall, 'balanced');
@@ -295,7 +304,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
         fc.integer({ min: 1, max: 1000 }), // seriesId
         fc.integer({ min: 1, max: 500 }), // trackId
         fc.integer({ min: 1000, max: 3500 }), // User iRating (different from SOF)
-        fc.float({ min: Math.fround(1.5), max: Math.fround(4.5) }), // User Safety Rating
+        fc.float({ min: Math.fround(1.5), max: Math.fround(4.5), noNaN: true, noDefaultInfinity: true }), // User Safety Rating
         userOverallStatsArb,
         async (seriesId, trackId, userIRating, userSafetyRating, overallStats) => {
           // Create opportunity with known SOF
@@ -306,7 +315,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
             trackId,
             trackName: 'Test Track',
             licenseRequired: 'D',
-            category: 'road',
+            category: 'sports_car',
             seasonYear: 2024,
             seasonQuarter: 1,
             raceWeekNum: 1,
@@ -325,7 +334,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
 
           // Create user with specific license data
           const userLicense: LicenseClass = {
-            category: 'road',
+            category: 'sports_car',
             level: 'D',
             safetyRating: userSafetyRating,
             iRating: userIRating
@@ -371,7 +380,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
       fc.asyncProperty(
         fc.integer({ min: 1, max: 1000 }), // seriesId
         fc.integer({ min: 1, max: 500 }), // trackId
-        fc.float({ min: Math.fround(1), max: Math.fround(12) }), // Real personal consistency (std dev)
+        fc.float({ min: Math.fround(1), max: Math.fround(12), noNaN: true, noDefaultInfinity: true }), // Real personal consistency (std dev)
         fc.integer({ min: 5, max: 50 }), // Sufficient race count for consistency calculation
         userOverallStatsArb,
         fc.array(licenseClassArb, { minLength: 1, maxLength: 4 }),
@@ -383,7 +392,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
             trackId,
             trackName: 'Test Track',
             licenseRequired: 'D',
-            category: 'road',
+            category: 'sports_car',
             seasonYear: 2024,
             seasonQuarter: 1,
             raceWeekNum: 1,
@@ -461,7 +470,7 @@ describe('Real Data Usage Over Defaults Properties', () => {
             trackId,
             trackName: 'Test Track',
             licenseRequired: 'D',
-            category: 'road',
+            category: 'sports_car',
             seasonYear: 2024,
             seasonQuarter: 1,
             raceWeekNum: 1,

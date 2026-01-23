@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { RecommendationCard } from '../RecommendationCard';
 import { ScoredOpportunity } from '@/lib/recommendations/types';
 import fc from 'fast-check';
@@ -190,33 +190,38 @@ describe('Modal Card Interaction Property Tests', () => {
           score: fc.integer({ min: 0, max: 100 })
         }),
         ({ seriesName, trackName, score }) => {
-          const testRecommendation = createMockRecommendation({
-            seriesName,
-            trackName,
-            score: {
-              ...createMockRecommendation().score,
-              overall: score
-            }
-          });
+          try {
+            const testRecommendation = createMockRecommendation({
+              seriesName,
+              trackName,
+              score: {
+                ...createMockRecommendation().score,
+                overall: score
+              }
+            });
 
-          const mockOnSelect = jest.fn();
-          
-          // Render the recommendation card
-          render(
-            <RecommendationCard 
-              recommendation={testRecommendation} 
-              onSelect={mockOnSelect} 
-            />
-          );
+            const mockOnSelect = jest.fn();
 
-          // Find the card element
-          const cardElement = screen.getByText(seriesName).closest('.cursor-pointer');
-          expect(cardElement).toBeInTheDocument();
+            // Render the recommendation card
+            render(
+              <RecommendationCard
+                recommendation={testRecommendation}
+                onSelect={mockOnSelect}
+              />
+            );
 
-          // Property: Card should have hover styling classes
-          expect(cardElement).toHaveClass('hover:shadow-lg');
-          expect(cardElement).toHaveClass('transition-shadow');
-          expect(cardElement).toHaveClass('cursor-pointer');
+            // Find the card element
+            const cardElement = screen.getByText(seriesName).closest('.cursor-pointer');
+            expect(cardElement).toBeInTheDocument();
+
+            // Property: Card should have hover styling classes
+            expect(cardElement).toHaveClass('hover:shadow-lg');
+            // Card uses transition-all for broader transition effects
+            expect(cardElement).toHaveClass('transition-all');
+            expect(cardElement).toHaveClass('cursor-pointer');
+          } finally {
+            cleanup();
+          }
         }
       ),
       { numRuns: 100 }

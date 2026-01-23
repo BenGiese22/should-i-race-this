@@ -259,11 +259,15 @@ describe('Multi-Factor Scoring Algorithm Properties', () => {
         userHistoryArb,
         recommendationModeArb,
         async (opportunity, userHistory, mode) => {
-          // Create histories with different experience levels
+          // Create history with truly zero familiarity (no series OR track experience)
+          // The familiarity algorithm gives partial credit for:
+          // - Series experience across all tracks (25% weight)
+          // - Track experience across all series (15% weight)
+          // So we must filter out BOTH series and track matches, not just exact combos
           const noExperienceHistory = {
             ...userHistory,
             seriesTrackHistory: userHistory.seriesTrackHistory.filter(
-              h => h.seriesId !== opportunity.seriesId || h.trackId !== opportunity.trackId
+              h => h.seriesId !== opportunity.seriesId && h.trackId !== opportunity.trackId
             )
           };
 

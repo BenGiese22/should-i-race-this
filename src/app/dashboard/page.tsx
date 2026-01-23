@@ -1,9 +1,8 @@
 'use client';
 
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/hooks';
-import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
 
 interface PerformanceMetric {
   seriesId?: number;
@@ -17,8 +16,29 @@ interface PerformanceMetric {
   raceCount: number;
 }
 
+interface IndividualRace {
+  id: string;
+  subsessionId: number;
+  seriesId: number;
+  seriesName: string;
+  trackId: number;
+  trackName: string;
+  raceDate: string;
+  startingPosition: number;
+  finishingPosition: number;
+  positionDelta: number;
+  incidents: number;
+  strengthOfField: number;
+}
+
 type GroupingType = 'series' | 'track' | 'series_track';
-type SessionType = 'practice' | 'qualifying' | 'time_trial' | 'race' | 'all';
+
+// Helper to create a unique key for each metric row
+const getMetricKey = (metric: PerformanceMetric, groupBy: GroupingType): string => {
+  if (groupBy === 'series') return `series-${metric.seriesId}`;
+  if (groupBy === 'track') return `track-${metric.trackId}`;
+  return `series-${metric.seriesId}-track-${metric.trackId}`;
+};
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -30,12 +50,20 @@ export default function Dashboard() {
   
   // Filter states
   const [groupBy, setGroupBy] = useState<GroupingType>('series');
-  const [sessionType, setSessionType] = useState<SessionType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<keyof PerformanceMetric>('raceCount');
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Expandable row states
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [expandedRowData, setExpandedRowData] = useState<Record<string, IndividualRace[]>>({});
+  const [expandedRowLoading, setExpandedRowLoading] = useState<Set<string>>(new Set());
 
   // Sync race data
   const handleSyncData = async () => {
@@ -79,22 +107,19 @@ export default function Dashboard() {
   // Fetch analytics data
   const fetchAnalytics = useCallback(async () => {
     if (!user) return;
-    
+
     setAnalyticsLoading(true);
     setError(null);
-    
+
     try {
-      const params = new URLSearchParams({
-        groupBy,
-        sessionType: sessionType === 'all' ? '' : sessionType,
-      });
-      
+      const params = new URLSearchParams({ groupBy });
+
       const response = await fetch(`/api/data/analytics?${params}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch analytics data');
       }
-      
+
       const data = await response.json();
       setAnalytics(data.analytics || []);
     } catch (err) {
@@ -102,12 +127,12 @@ export default function Dashboard() {
     } finally {
       setAnalyticsLoading(false);
     }
-  }, [user, groupBy, sessionType]);
+  }, [user, groupBy]);
 
   // Filter and search analytics
   useEffect(() => {
     let filtered = [...analytics];
-    
+
     // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -117,28 +142,98 @@ export default function Dashboard() {
         return seriesMatch || trackMatch;
       });
     }
-    
+
     // Apply sorting
     filtered.sort((a, b) => {
       const aVal = a[sortField] as number;
       const bVal = b[sortField] as number;
-      
+
       if (sortDirection === 'asc') {
         return aVal - bVal;
       } else {
         return bVal - aVal;
       }
     });
-    
+
     setFilteredAnalytics(filtered);
+    // Reset to page 1 when filters change
+    setCurrentPage(1);
   }, [analytics, searchTerm, sortField, sortDirection]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAnalytics.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedAnalytics = filteredAnalytics.slice(startIndex, endIndex);
+
+  // Handle page size change
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+
+  // Toggle row expansion and fetch individual race data
+  const toggleRowExpansion = async (metric: PerformanceMetric) => {
+    const key = getMetricKey(metric, groupBy);
+
+    if (expandedRows.has(key)) {
+      // Collapse the row
+      const newExpanded = new Set(expandedRows);
+      newExpanded.delete(key);
+      setExpandedRows(newExpanded);
+      return;
+    }
+
+    // Expand the row
+    const newExpanded = new Set(expandedRows);
+    newExpanded.add(key);
+    setExpandedRows(newExpanded);
+
+    // If we already have data, don't fetch again
+    if (expandedRowData[key]) {
+      return;
+    }
+
+    // Fetch individual race data
+    const newLoading = new Set(expandedRowLoading);
+    newLoading.add(key);
+    setExpandedRowLoading(newLoading);
+
+    try {
+      const params = new URLSearchParams();
+      if (metric.seriesId) params.set('seriesId', metric.seriesId.toString());
+      if (metric.trackId) params.set('trackId', metric.trackId.toString());
+
+      const response = await fetch(`/api/data/analytics/races?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch race details');
+
+      const data = await response.json();
+      setExpandedRowData(prev => ({ ...prev, [key]: data.races || [] }));
+    } catch (err) {
+      console.error('Failed to fetch race details:', err);
+      // Remove from expanded on error
+      const revertExpanded = new Set(expandedRows);
+      revertExpanded.delete(key);
+      setExpandedRows(revertExpanded);
+    } finally {
+      const doneLoading = new Set(expandedRowLoading);
+      doneLoading.delete(key);
+      setExpandedRowLoading(doneLoading);
+    }
+  };
+
+  // Clear expanded rows when groupBy changes
+  useEffect(() => {
+    setExpandedRows(new Set());
+    setExpandedRowData({});
+  }, [groupBy]);
 
   // Fetch data when filters change
   useEffect(() => {
     if (user) {
       fetchAnalytics();
     }
-  }, [user, groupBy, sessionType, fetchAnalytics]);
+  }, [user, groupBy, fetchAnalytics]);
 
   const handleSort = (field: keyof PerformanceMetric) => {
     if (sortField === field) {
@@ -169,14 +264,35 @@ export default function Dashboard() {
     );
   };
 
-  const formatDelta = (delta: number) => {
+  const formatDelta = (delta: number, decimals: number = 1) => {
     if (delta > 0) {
-      return <span className="text-racing-improvement font-semibold">+{delta.toFixed(1)}</span>;
+      return <span className="text-racing-improvement font-semibold">+{delta.toFixed(decimals)}</span>;
     } else if (delta < 0) {
-      return <span className="text-racing-decline font-semibold">{delta.toFixed(1)}</span>;
+      return <span className="text-racing-decline font-semibold">{delta.toFixed(decimals)}</span>;
     } else {
-      return <span className="text-racing-neutral">0.0</span>;
+      return <span className="text-racing-neutral">0{decimals > 0 ? '.0' : ''}</span>;
     }
+  };
+
+  // Get incident color class based on incident count
+  // More gradual scale since incidents are common in racing
+  const getIncidentColor = (incidents: number): string => {
+    if (incidents <= 1) return 'text-emerald-600';     // Excellent - very clean race
+    if (incidents <= 2) return 'text-teal-500';        // Very good
+    if (incidents <= 4) return 'text-amber-500';       // Average - typical racing incidents
+    if (incidents <= 6) return 'text-orange-500';      // Concerning
+    return 'text-red-600';                              // High incidents
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   if (loading) {
@@ -222,61 +338,20 @@ export default function Dashboard() {
 
         {/* Controls */}
         <div className="card mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Group By Toggle */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Group By Dropdown */}
             <div>
               <label className="block text-sm font-medium text-racing-gray-700 mb-2">
                 Group By
               </label>
-              <div className="flex rounded-lg border border-racing-gray-300 overflow-hidden">
-                <button
-                  onClick={() => setGroupBy('series')}
-                  className={`px-3 py-2 text-sm font-medium transition-colors ${
-                    groupBy === 'series'
-                      ? 'bg-racing-blue text-white'
-                      : 'bg-white text-racing-gray-700 hover:bg-racing-gray-50'
-                  }`}
-                >
-                  Series
-                </button>
-                <button
-                  onClick={() => setGroupBy('track')}
-                  className={`px-3 py-2 text-sm font-medium transition-colors border-l border-racing-gray-300 ${
-                    groupBy === 'track'
-                      ? 'bg-racing-blue text-white'
-                      : 'bg-white text-racing-gray-700 hover:bg-racing-gray-50'
-                  }`}
-                >
-                  Track
-                </button>
-                <button
-                  onClick={() => setGroupBy('series_track')}
-                  className={`px-3 py-2 text-sm font-medium transition-colors border-l border-racing-gray-300 ${
-                    groupBy === 'series_track'
-                      ? 'bg-racing-blue text-white'
-                      : 'bg-white text-racing-gray-700 hover:bg-racing-gray-50'
-                  }`}
-                >
-                  Series + Track
-                </button>
-              </div>
-            </div>
-
-            {/* Session Type Filter */}
-            <div>
-              <label className="block text-sm font-medium text-racing-gray-700 mb-2">
-                Session Type
-              </label>
               <select
-                value={sessionType}
-                onChange={(e) => setSessionType(e.target.value as SessionType)}
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as GroupingType)}
                 className="w-full px-3 py-2 border border-racing-gray-300 rounded-lg focus:ring-2 focus:ring-racing-blue focus:border-transparent"
               >
-                <option value="all">All Sessions</option>
-                <option value="race">Race</option>
-                <option value="qualifying">Qualifying</option>
-                <option value="practice">Practice</option>
-                <option value="time_trial">Time Trial</option>
+                <option value="series">Series</option>
+                <option value="track">Track</option>
+                <option value="series_track">Series + Track</option>
               </select>
             </div>
 
@@ -299,27 +374,34 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Refresh Button */}
+            {/* Sync Button */}
             <div className="flex items-end">
-              <button
-                onClick={fetchAnalytics}
-                disabled={analyticsLoading}
-                className="btn-primary w-full flex items-center justify-center gap-2"
-              >
-                {analyticsLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh
-                  </>
-                )}
-              </button>
+              <div className="relative group">
+                <button
+                  onClick={handleSyncData}
+                  disabled={syncLoading || analyticsLoading}
+                  className="px-3 py-2 bg-racing-blue text-white rounded-lg hover:bg-racing-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {syncLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Syncing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      <span>Sync</span>
+                    </>
+                  )}
+                </button>
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-racing-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  Fetch latest race data from iRacing
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-racing-gray-900"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -365,43 +447,29 @@ export default function Dashboard() {
                 {searchTerm ? 'No results match your search criteria.' : 'No race data found for the selected filters.'}
               </p>
               {!searchTerm && (
-                <div className="space-y-2">
+                <div className="flex flex-col items-center gap-3">
                   <button
                     onClick={handleSyncData}
                     disabled={syncLoading}
-                    className="btn-primary flex items-center gap-2 w-full"
+                    className="px-4 py-2 bg-racing-blue text-white rounded-lg hover:bg-racing-blue/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {syncLoading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Syncing...
+                        Syncing from iRacing...
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                         </svg>
-                        Sync Race Data
+                        Sync Race Data from iRacing
                       </>
                     )}
                   </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        const response = await fetch('/api/debug/sync-debug', { method: 'POST' });
-                        const result = await response.json();
-                        console.log('Sync Debug Result:', result);
-                        alert('Debug info logged to console. Check browser dev tools.');
-                      } catch (err) {
-                        console.error('Debug error:', err);
-                        alert('Debug failed. Check console for errors.');
-                      }
-                    }}
-                    className="w-full px-3 py-2 text-sm border border-racing-gray-300 rounded-lg hover:bg-racing-gray-50 flex items-center justify-center gap-2"
-                  >
-                    <Search className="w-4 h-4" />
-                    Debug Sync Process
-                  </button>
+                  <p className="text-xs text-racing-gray-500">
+                    This will fetch your latest race results from iRacing
+                  </p>
                 </div>
               )}
             </div>
@@ -410,6 +478,8 @@ export default function Dashboard() {
               <table className="w-full">
                 <thead className="bg-racing-gray-50">
                   <tr>
+                    {/* Expand indicator column */}
+                    <th className="w-8"></th>
                     {groupBy !== 'track' && (
                       <th className="px-6 py-3 text-left text-xs font-medium text-racing-gray-500 uppercase tracking-wider">
                         <button
@@ -480,54 +550,225 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-racing-gray-200">
-                  {filteredAnalytics.map((metric, index) => (
-                    <tr key={index} className="hover:bg-racing-gray-50">
-                      {groupBy !== 'track' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-racing-gray-900">
-                          {metric.seriesName || 'Unknown Series'}
-                        </td>
-                      )}
-                      {groupBy !== 'series' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-racing-gray-900">
-                          {metric.trackName || 'Unknown Track'}
-                        </td>
-                      )}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-racing-gray-900">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-racing-blue/10 text-racing-blue">
-                          {metric.raceCount}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-racing-gray-900">
-                        {metric.avgStartingPosition.toFixed(1)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-racing-gray-900">
-                        {metric.avgFinishingPosition.toFixed(1)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {formatDelta(metric.positionDelta)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-racing-gray-900">
-                        <span className={`font-medium ${
-                          metric.avgIncidents < 2 ? 'text-racing-green' :
-                          metric.avgIncidents < 4 ? 'text-racing-yellow' :
-                          'text-racing-red'
-                        }`}>
-                          {metric.avgIncidents.toFixed(1)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedAnalytics.map((metric, index) => {
+                    const rowKey = getMetricKey(metric, groupBy);
+                    const isExpanded = expandedRows.has(rowKey);
+                    const isLoading = expandedRowLoading.has(rowKey);
+                    const raceDetails = expandedRowData[rowKey] || [];
+                    const colSpan = groupBy === 'series_track' ? 7 : 6;
+
+                    return (
+                      <React.Fragment key={startIndex + index}>
+                        {/* Main aggregated row */}
+                        <tr
+                          onClick={() => toggleRowExpansion(metric)}
+                          className="hover:bg-racing-gray-50 cursor-pointer select-none"
+                        >
+                          {/* Expand indicator */}
+                          <td className="pl-4 pr-2 py-4 w-8">
+                            <svg
+                              className={`w-4 h-4 text-racing-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </td>
+                          {groupBy !== 'track' && (
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-racing-gray-900">
+                              {metric.seriesName || 'Unknown Series'}
+                            </td>
+                          )}
+                          {groupBy !== 'series' && (
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-racing-gray-900">
+                              {metric.trackName || 'Unknown Track'}
+                            </td>
+                          )}
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-racing-gray-900">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-racing-blue/10 text-racing-blue">
+                              {metric.raceCount}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-racing-gray-900">
+                            {metric.avgStartingPosition.toFixed(1)}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-racing-gray-900">
+                            {metric.avgFinishingPosition.toFixed(1)}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm">
+                            {formatDelta(metric.positionDelta)}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-racing-gray-900">
+                            <span className={`font-medium ${getIncidentColor(metric.avgIncidents)}`}>
+                              {metric.avgIncidents.toFixed(1)}
+                            </span>
+                          </td>
+                        </tr>
+
+                        {/* Expanded detail row */}
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={colSpan + 1} className="px-4 py-0 bg-racing-gray-50">
+                              <div className="py-3">
+                                {isLoading ? (
+                                  <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-racing-blue"></div>
+                                    <span className="ml-2 text-sm text-racing-gray-600">Loading race details...</span>
+                                  </div>
+                                ) : raceDetails.length === 0 ? (
+                                  <div className="text-center py-4 text-sm text-racing-gray-500">
+                                    No individual race data found
+                                  </div>
+                                ) : (
+                                  <div className="max-h-52 overflow-y-auto border border-racing-gray-200 rounded-lg bg-white">
+                                    <table className="w-full text-sm">
+                                      <thead className="bg-racing-gray-100 sticky top-0">
+                                        <tr>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Date</th>
+                                          {groupBy === 'series' && (
+                                            <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Track</th>
+                                          )}
+                                          {groupBy === 'track' && (
+                                            <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Series</th>
+                                          )}
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Start</th>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Finish</th>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Δ</th>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">Inc</th>
+                                          <th className="px-3 py-2 text-left text-xs font-medium text-racing-gray-500 uppercase">SOF</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-racing-gray-100">
+                                        {raceDetails.map((race) => (
+                                          <tr key={race.subsessionId} className="hover:bg-racing-gray-50">
+                                            <td className="px-3 py-2 text-racing-gray-700 whitespace-nowrap">{formatDateTime(race.raceDate)}</td>
+                                            {groupBy === 'series' && (
+                                              <td className="px-3 py-2 text-racing-gray-700 max-w-[200px] truncate" title={race.trackName}>
+                                                {race.trackName}
+                                              </td>
+                                            )}
+                                            {groupBy === 'track' && (
+                                              <td className="px-3 py-2 text-racing-gray-700 max-w-[200px] truncate" title={race.seriesName}>
+                                                {race.seriesName}
+                                              </td>
+                                            )}
+                                            <td className="px-3 py-2 text-racing-gray-900">{race.startingPosition > 0 ? `P${race.startingPosition}` : '-'}</td>
+                                            <td className="px-3 py-2 text-racing-gray-900">{race.finishingPosition > 0 ? `P${race.finishingPosition}` : '-'}</td>
+                                            <td className="px-3 py-2">{race.startingPosition > 0 && race.finishingPosition > 0 ? formatDelta(race.positionDelta, 0) : '-'}</td>
+                                            <td className="px-3 py-2">
+                                              <span className={getIncidentColor(race.incidents)}>
+                                                {race.incidents}x
+                                              </span>
+                                            </td>
+                                            <td className="px-3 py-2 text-racing-gray-600">{race.strengthOfField && race.strengthOfField > 0 ? race.strengthOfField.toLocaleString() : '-'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
         </div>
 
-        {/* Results Summary */}
+        {/* Pagination Controls */}
         {filteredAnalytics.length > 0 && (
-          <div className="mt-4 text-sm text-racing-gray-600 text-center">
-            Showing {filteredAnalytics.length} of {analytics.length} results
-            {searchTerm && ` for "${searchTerm}"`}
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Results Summary */}
+            <div className="text-sm text-racing-gray-600">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredAnalytics.length)} of {filteredAnalytics.length} results
+              {searchTerm && ` for "${searchTerm}"`}
+              {filteredAnalytics.length !== analytics.length && ` (${analytics.length} total)`}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center gap-4">
+              {/* Page Size Selector */}
+              <div className="flex items-center gap-2">
+                <label htmlFor="pageSize" className="text-sm text-racing-gray-600">
+                  Rows:
+                </label>
+                <select
+                  id="pageSize"
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="px-2 py-1 text-sm border border-racing-gray-300 rounded focus:ring-2 focus:ring-racing-blue focus:border-transparent"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+
+              {/* Page Navigation */}
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  {/* First Page */}
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="p-1 rounded hover:bg-racing-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="First page"
+                  >
+                    <svg className="w-5 h-5 text-racing-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Previous Page */}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1 rounded hover:bg-racing-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Previous page"
+                  >
+                    <svg className="w-5 h-5 text-racing-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Page Indicator */}
+                  <span className="px-3 py-1 text-sm text-racing-gray-700">
+                    {currentPage} / {totalPages}
+                  </span>
+
+                  {/* Next Page */}
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1 rounded hover:bg-racing-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Next page"
+                  >
+                    <svg className="w-5 h-5 text-racing-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  {/* Last Page */}
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="p-1 rounded hover:bg-racing-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Last page"
+                  >
+                    <svg className="w-5 h-5 text-racing-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

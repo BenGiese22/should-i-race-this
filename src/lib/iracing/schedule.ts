@@ -66,34 +66,108 @@ function getWeekDates(raceWeekNum: number, seasonYear: number, seasonQuarter: nu
 }
 
 /**
- * Extract license level from series data using centralized license helper
+ * Extract license level from series/season data using centralized license helper
+ *
+ * The iRacing API may provide license info in different fields depending on the endpoint.
+ * We check multiple possible field names with logging to help debug issues.
  */
-function extractLicenseLevel(series: any): string {
+function extractLicenseLevel(seasonData: any): string {
+  // Log available fields for debugging (first few entries only)
+  const relevantFields = {
+    license_group: seasonData.license_group,
+    license_group_id: seasonData.license_group_id,
+    min_license_level: seasonData.min_license_level,
+    license_level: seasonData.license_level,
+    series_id: seasonData.series_id,
+    season_id: seasonData.season_id,
+  };
+
   // Try license_group first (most common in iRacing API)
-  if (series.license_group !== undefined) {
-    const licenseLevel = LicenseHelper.fromIRacingGroup(series.license_group);
+  if (seasonData.license_group !== undefined && seasonData.license_group !== null) {
+    const licenseLevel = LicenseHelper.fromIRacingGroup(seasonData.license_group);
     return licenseLevel;
   }
-  
-  // Fallback to min_license_level if it exists
-  if (series.min_license_level !== undefined) {
-    const licenseLevel = LicenseHelper.fromIRacingGroup(series.min_license_level);
+
+  // Try license_group_id (alternative field name)
+  if (seasonData.license_group_id !== undefined && seasonData.license_group_id !== null) {
+    const licenseLevel = LicenseHelper.fromIRacingGroup(seasonData.license_group_id);
     return licenseLevel;
   }
-  
+
+  // Log when falling back to Rookie so we can identify API field issues
+  console.warn(`License level extraction falling back to Rookie for season/series. Available fields:`, relevantFields);
+
   return LicenseLevel.ROOKIE;
 }
 
 /**
- * Extract category from schedule entry data using the Category enum
+ * Determine if a series has open setup based on API data
+ *
+ * Checks both season-level and schedule entry-level fields with proper fallback.
+ * Default to fixed setup (false) when data is missing to be conservative.
  */
-function extractCategory(scheduleEntry: any): Category {
+function extractHasOpenSetup(seasonData: any, scheduleEntry: any): boolean {
+  // Check schedule entry level first (per-week override)
+  if (scheduleEntry.fixed_setup === true) {
+    return false; // Explicitly fixed
+  }
+  if (scheduleEntry.fixed_setup === false) {
+    return true; // Explicitly open
+  }
+
+  // Check season/series level
+  if (seasonData.fixed_setup === true) {
+    return false; // Series is fixed setup
+  }
+  if (seasonData.fixed_setup === false) {
+    return true; // Series is open setup
+  }
+
+  // Check open_setup field if available
+  if (seasonData.open_setup === true) {
+    return true;
+  }
+  if (seasonData.open_setup === false) {
+    return false;
+  }
+
+  // Default to fixed setup when unknown (conservative approach)
+  return false;
+}
+
+/**
+ * Extract category from schedule entry or season data using the Category enum
+ *
+ * Checks multiple possible field locations and normalizes legacy values like "road"
+ * to the current 5-category system.
+ */
+function extractCategory(scheduleEntry: any, seasonData?: any): Category {
+  // Try schedule entry level first
   if (scheduleEntry.category) {
-    return CategoryHelper.fromScheduleCategory(scheduleEntry.category);
+    const normalized = CategoryHelper.fromScheduleCategory(scheduleEntry.category);
+    return normalized;
   }
   if (scheduleEntry.category_id !== undefined) {
     return mapScheduleCategory(scheduleEntry.category_id);
   }
+
+  // Try season/series level as fallback
+  if (seasonData?.category) {
+    const normalized = CategoryHelper.fromScheduleCategory(seasonData.category);
+    return normalized;
+  }
+  if (seasonData?.category_id !== undefined) {
+    return mapScheduleCategory(seasonData.category_id);
+  }
+
+  // Log when falling back to default
+  console.warn('Category extraction falling back to SPORTS_CAR. Available fields:', {
+    scheduleEntry_category: scheduleEntry.category,
+    scheduleEntry_category_id: scheduleEntry.category_id,
+    seasonData_category: seasonData?.category,
+    seasonData_category_id: seasonData?.category_id,
+  });
+
   return Category.SPORTS_CAR;
 }
 
@@ -163,9 +237,32 @@ export async function syncScheduleData(
 
     let entriesAdded = 0;
     let skippedEntries = 0;
+    let debugLogCount = 0;
+    const MAX_DEBUG_LOGS = 3; // Log first few entries for debugging
 
     // Process each season and its embedded schedule
     for (const seasonData of seasonsData) {
+      // Debug: Log first few season data objects to understand API structure
+      if (debugLogCount < MAX_DEBUG_LOGS) {
+        console.log(`Debug: Season data sample ${debugLogCount + 1}:`, {
+          season_id: seasonData.season_id,
+          series_id: seasonData.series_id,
+          season_name: seasonData.season_name,
+          // License-related fields
+          license_group: seasonData.license_group,
+          license_group_id: seasonData.license_group_id,
+          min_license_level: seasonData.min_license_level,
+          // Setup-related fields
+          fixed_setup: seasonData.fixed_setup,
+          open_setup: seasonData.open_setup,
+          // Category fields
+          category: seasonData.category,
+          category_id: seasonData.category_id,
+          // List all top-level keys for discovery
+          all_keys: Object.keys(seasonData).slice(0, 20),
+        });
+        debugLogCount++;
+      }
       if (!seasonData.season_id || !seasonData.schedules || !Array.isArray(seasonData.schedules)) {
         console.log(`Skipping season ${seasonData.season_id}: no schedules array`);
         skippedEntries++;
@@ -213,7 +310,8 @@ export async function syncScheduleData(
         }
 
         const licenseRequired = extractLicenseLevel(seasonData);
-        const category = extractCategory(scheduleEntry); // Use schedule entry for category
+        const category = extractCategory(scheduleEntry, seasonData); // Check both levels
+        const hasOpenSetup = extractHasOpenSetup(seasonData, scheduleEntry);
 
         const dbEntry = {
           seriesId,
@@ -223,7 +321,7 @@ export async function syncScheduleData(
           licenseRequired,
           category,
           raceLength,
-          hasOpenSetup: !scheduleEntry.fixed_setup, // Use fixed_setup from season data
+          hasOpenSetup,
           seasonYear: season.year,
           seasonQuarter: season.quarter,
           raceWeekNum,

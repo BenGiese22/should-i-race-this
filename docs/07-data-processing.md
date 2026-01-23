@@ -128,10 +128,27 @@ class DataTransformer {
     };
   }
   
+  /**
+   * Maps iRacing event_type to our SessionType enum.
+   *
+   * Verified iRacing event_type values (from Data API docs):
+   * - 2 = Practice
+   * - 3 = Qualifying
+   * - 4 = Time Trial
+   * - 5 = Race
+   *
+   * Additional useful fields from iRacing API:
+   * - event_type_name: Human-readable (e.g., "Race", "Practice")
+   * - official_session: Boolean - true if affects iRating (authoritative source)
+   * - event_strength_of_field: -1 for unofficial/practice, positive for official races
+   *
+   * Practice sessions have: SOF=-1, starting_position=-1, odd start times
+   * Official races have: SOF>0, valid positions, start times on :00/:15/:30/:45
+   */
   private mapSessionType(eventType: number): SessionType {
     const mapping: Record<number, SessionType> = {
       2: 'practice',
-      3: 'qualifying', 
+      3: 'qualifying',
       4: 'time_trial',
       5: 'race'
     };

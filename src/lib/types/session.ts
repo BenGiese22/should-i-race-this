@@ -89,30 +89,36 @@ export class SessionTypeHelper {
   }
 
   /**
-   * Known iRacing event type mappings
+   * iRacing event_type mappings
+   *
+   * Verified from iRacing Data API documentation:
+   * - 2 = Practice
+   * - 3 = Qualifying
+   * - 4 = Time Trial
+   * - 5 = Race
+   *
+   * Note: The API may return other event_type values for special race formats
+   * (heat races, team events, etc). Unknown types default to RACE as a safe fallback.
+   *
+   * Additional fields available in API response:
+   * - event_type_name: Human-readable name (e.g., "Race", "Practice")
+   * - official_session: Boolean indicating if the session affects iRating
+   *
+   * @see https://members-ng.iracing.com/data/constants/event_types
    */
   private static readonly EVENT_TYPE_MAPPINGS: Record<number, SessionType> = {
-    // Core mappings from iRacing API
-    1: SessionType.RACE,
-    2: SessionType.PRACTICE,
-    3: SessionType.QUALIFYING,
-    4: SessionType.TIME_TRIAL,
-    5: SessionType.RACE,
-    6: SessionType.QUALIFYING,
-    7: SessionType.TIME_TRIAL,
-    8: SessionType.TIME_TRIAL,
-    9: SessionType.RACE,
-    10: SessionType.RACE,
-    11: SessionType.RACE,
-    12: SessionType.RACE,
-    13: SessionType.RACE,
-    14: SessionType.RACE,
-    15: SessionType.RACE,
-    16: SessionType.RACE,
-    17: SessionType.RACE,
-    18: SessionType.RACE,
-    19: SessionType.RACE,
-    20: SessionType.RACE,
+    // Verified core mappings from iRacing Data API documentation
+    2: SessionType.PRACTICE,    // Practice sessions
+    3: SessionType.QUALIFYING,  // Qualifying sessions
+    4: SessionType.TIME_TRIAL,  // Time Trial sessions
+    5: SessionType.RACE,        // Standard race sessions
+
+    // Legacy/special event types (mapped to RACE as safe default)
+    // These may appear in older data or special event formats
+    1: SessionType.RACE,        // Possibly legacy race format
+    6: SessionType.QUALIFYING,  // Possibly heat qualifying
+    7: SessionType.TIME_TRIAL,  // Possibly alternate time trial
+    8: SessionType.TIME_TRIAL,  // Possibly alternate time trial
   };
 
   /**
