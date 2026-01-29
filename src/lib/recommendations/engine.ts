@@ -1,12 +1,12 @@
-import { 
-  RacingOpportunity, 
-  UserHistory, 
-  RecommendationMode, 
+import {
+  RacingOpportunity,
+  UserHistory,
+  RecommendationMode,
   ScoredRecommendation,
   RecommendationResponse,
   ExperienceSummary
 } from './types';
-import { RecommendationModeHelper } from '../types/recommendation';
+import { RecommendationModeHelper, RecommendationMode as RecommendationModeEnum } from '../types/recommendation';
 import { scoringAlgorithm } from './scoring';
 import { licenseFilter } from './license-filter';
 import { prepareUserHistory, getCurrentRacingOpportunities, prefetchRecommendationData } from './data-preparation';
@@ -38,28 +38,16 @@ export class RecommendationEngine {
     const scoredRecommendations: ScoredRecommendation[] = eligibleOpportunities.map(opportunity => {
       const score = scoringAlgorithm.calculateScore(opportunity, userHistory, mode);
       const visualIndicators = visualScoringRenderer.renderVisualScoring(score);
-      
+
       return {
         ...opportunity,
         score,
         visualIndicators
       };
     });
-    
-    // Sort by priority score first (familiar combinations), then by overall score
-    // This implements experience-based prioritization (Requirements 5.7)
-    scoredRecommendations.sort((a, b) => {
-      // Primary sort: Priority score (higher is better)
-      const priorityDiff = b.score.priorityScore - a.score.priorityScore;
-      if (Math.abs(priorityDiff) > 5) { // Significant priority difference
-        return priorityDiff;
-      }
-      
-      // Secondary sort: Overall score (higher is better)
-      return b.score.overall - a.score.overall;
-    });
-    
-    return scoredRecommendations;
+
+    // Sort using mode-aware logic (Safety Recovery prioritizes safety, iRating Push prioritizes performance)
+    return this.sortByMode(scoredRecommendations, mode);
   }
 
   /**
@@ -108,29 +96,21 @@ export class RecommendationEngine {
     const eligibleOpportunities = licenseFilter.filterByLicense(categoryFiltered, userHistory);
     
     // Score opportunities and create enhanced recommendations with visual indicators
-    const scoredRecommendations: ScoredRecommendation[] = eligibleOpportunities
+    const allScoredRecommendations: ScoredRecommendation[] = eligibleOpportunities
       .map(opportunity => {
         const score = scoringAlgorithm.calculateScore(opportunity, userHistory, mode);
         const visualIndicators = visualScoringRenderer.renderVisualScoring(score);
-        
+
         return {
           ...opportunity,
           score,
           visualIndicators
         };
       })
-      .filter(scored => scored.score.overall >= minScore)
-      .sort((a, b) => {
-        // Primary sort: Priority score (higher is better) - prioritizes familiar combinations
-        const priorityDiff = b.score.priorityScore - a.score.priorityScore;
-        if (Math.abs(priorityDiff) > 5) { // Significant priority difference
-          return priorityDiff;
-        }
-        
-        // Secondary sort: Overall score (higher is better)
-        return b.score.overall - a.score.overall;
-      })
-      .slice(0, maxResults);
+      .filter(scored => scored.score.overall >= minScore);
+
+    // Sort using mode-aware logic (Safety Recovery prioritizes safety, iRating Push prioritizes performance)
+    const scoredRecommendations = this.sortByMode(allScoredRecommendations, mode).slice(0, maxResults);
 
     // Calculate experience summary
     const experienceSummary = this.calculateExperienceSummary(userHistory);
@@ -349,29 +329,20 @@ export class RecommendationEngine {
     const allOpportunities = await getCurrentRacingOpportunities();
     const eligibleOpportunities = licenseFilter.filterByLicense(allOpportunities, userHistory);
 
-    const scoreOpportunities = (mode: RecommendationMode) => 
-      eligibleOpportunities
-        .map(opportunity => {
-          const score = scoringAlgorithm.calculateScore(opportunity, userHistory, mode);
-          const visualIndicators = visualScoringRenderer.renderVisualScoring(score);
-          
-          return {
-            ...opportunity,
-            score,
-            visualIndicators
-          };
-        })
-        .sort((a, b) => {
-          // Primary sort: Priority score (higher is better) - prioritizes familiar combinations
-          const priorityDiff = b.score.priorityScore - a.score.priorityScore;
-          if (Math.abs(priorityDiff) > 5) { // Significant priority difference
-            return priorityDiff;
-          }
-          
-          // Secondary sort: Overall score (higher is better)
-          return b.score.overall - a.score.overall;
-        })
-        .slice(0, 10); // Top 10 for each mode
+    const scoreOpportunities = (mode: RecommendationMode) => {
+      const scored = eligibleOpportunities.map(opportunity => {
+        const score = scoringAlgorithm.calculateScore(opportunity, userHistory, mode);
+        const visualIndicators = visualScoringRenderer.renderVisualScoring(score);
+
+        return {
+          ...opportunity,
+          score,
+          visualIndicators
+        };
+      });
+      // Use mode-aware sorting so each mode shows its best options
+      return this.sortByMode(scored, mode).slice(0, 10);
+    }
 
     return {
       balanced: scoreOpportunities(RecommendationMode.BALANCED),
@@ -402,6 +373,51 @@ export class RecommendationEngine {
    */
   async prefetchUserData(userId: string): Promise<void> {
     await prefetchRecommendationData(userId);
+  }
+
+  /**
+   * Mode-aware sorting for recommendations
+   *
+   * KEY FIX: Previous sorting prioritized familiarity (priorityScore) over mode-weighted scores,
+   * which caused Safety Recovery mode to recommend high-incident familiar tracks over
+   * safer unfamiliar ones. Now each mode sorts by its primary factor:
+   *
+   * - SAFETY_RECOVERY: Primary sort by safety factor, then overall
+   * - IRATING_PUSH: Primary sort by performance factor, then overall
+   * - BALANCED: Primary sort by overall weighted score, then priorityScore as tiebreaker
+   */
+  private sortByMode(recommendations: ScoredRecommendation[], mode: RecommendationMode): ScoredRecommendation[] {
+    return [...recommendations].sort((a, b) => {
+      switch (mode) {
+        case RecommendationModeEnum.SAFETY_RECOVERY:
+          // Safety Recovery: Sort primarily by safety factor (higher = safer = fewer incidents)
+          const safetyDiff = b.score.factors.safety - a.score.factors.safety;
+          if (Math.abs(safetyDiff) > 3) {
+            return safetyDiff;
+          }
+          // Secondary: overall score (which still weights safety at 30%)
+          return b.score.overall - a.score.overall;
+
+        case RecommendationModeEnum.IRATING_PUSH:
+          // iRating Push: Sort primarily by performance factor (position delta potential)
+          const perfDiff = b.score.factors.performance - a.score.factors.performance;
+          if (Math.abs(perfDiff) > 3) {
+            return perfDiff;
+          }
+          // Secondary: overall score (which weights performance at 25%)
+          return b.score.overall - a.score.overall;
+
+        case RecommendationModeEnum.BALANCED:
+        default:
+          // Balanced: Use overall weighted score, with familiarity as a minor tiebreaker
+          const overallDiff = b.score.overall - a.score.overall;
+          if (Math.abs(overallDiff) > 3) {
+            return overallDiff;
+          }
+          // Tiebreaker: slight preference for familiar combinations
+          return b.score.priorityScore - a.score.priorityScore;
+      }
+    });
   }
 }
 

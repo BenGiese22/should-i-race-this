@@ -9,3 +9,5 @@ export { Skeleton } from './skeleton';
 export { Tooltip } from './tooltip';
 export { VirtualScroll } from './virtual-scroll';
 export { ErrorBoundary } from './error-boundary';
+export { LicenseBadge } from './LicenseBadge';
+export { ScoreProgressBar, ScoreIndicator, getScoreColor, getScoreColorClass } from './ScoreProgressBar';

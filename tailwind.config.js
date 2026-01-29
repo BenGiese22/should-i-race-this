@@ -1,9 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  // Safelist classes that are dynamically composed (e.g., license badge colors)
+  safelist: [
+    // License badge colors - these are returned by getLicenseBadgeClass()
+    'bg-red-600', 'text-white', 'border-red-700',       // Rookie
+    'bg-orange-600', 'border-orange-700',               // Class D
+    'bg-yellow-500', 'text-gray-800', 'border-yellow-600', // Class C
+    'bg-green-600', 'border-green-700',                 // Class B
+    'bg-blue-600', 'border-blue-700',                   // Class A
+    'bg-gray-800', 'border-gray-900',                   // Pro
   ],
   theme: {
     extend: {

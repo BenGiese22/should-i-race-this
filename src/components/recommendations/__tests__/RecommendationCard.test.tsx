@@ -1,21 +1,24 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecommendationCard } from '../RecommendationCard';
-import { ScoredOpportunity } from '@/lib/recommendations/types';
+import { ScoredRecommendation, RecommendationMode } from '@/lib/recommendations/types';
 import { LicenseLevel } from '@/lib/types/license';
 
-const mockRecommendation: ScoredOpportunity = {
+const mockRecommendation: ScoredRecommendation = {
   seriesId: 1,
   seriesName: 'Skip Barber Formula 2000',
   trackId: 101,
   trackName: 'Road Atlanta',
   licenseRequired: LicenseLevel.D,
-  category: 'road',
+  category: 'sports_car',
   seasonYear: 2024,
   seasonQuarter: 1,
   raceWeekNum: 5,
   raceLength: 45,
   hasOpenSetup: false,
-  timeSlots: [],
+  timeSlots: [
+    { hour: 14, dayOfWeek: 1, strengthOfField: 1500, participantCount: 20 },
+    { hour: 18, dayOfWeek: 1, strengthOfField: 1600, participantCount: 24 },
+  ],
   globalStats: {
     avgIncidentsPerRace: 2.1,
     avgFinishPositionStdDev: 4.5,
@@ -26,6 +29,7 @@ const mockRecommendation: ScoredOpportunity = {
   },
   score: {
     overall: 85,
+    priorityScore: 80,
     factors: {
       performance: 78,
       safety: 92,
@@ -42,189 +46,242 @@ const mockRecommendation: ScoredOpportunity = {
       'Strong performance history at this track',
       'Low incident rate expected',
       'Consistent field strength'
-    ]
+    ],
+    dataConfidence: {
+      performance: 'high',
+      safety: 'high',
+      consistency: 'moderate',
+      familiarity: 'high',
+      globalStats: 'high'
+    }
+  },
+  visualIndicators: {
+    performance: { value: 78, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#84CC16', cssGradient: '' }, icon: '📈', tooltip: '' },
+    safety: { value: 92, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#10B981', cssGradient: '' }, icon: '🛡️', tooltip: '' },
+    consistency: { value: 65, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#84CC16', cssGradient: '' }, icon: '📊', tooltip: '' },
+    predictability: { value: 88, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#10B981', cssGradient: '' }, icon: '🎲', tooltip: '' },
+    familiarity: { value: 45, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#F59E0B', cssGradient: '' }, icon: '🎯', tooltip: '' },
+    fatigueRisk: { value: 75, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#84CC16', cssGradient: '' }, icon: '⏱️', tooltip: '' },
+    attritionRisk: { value: 85, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#10B981', cssGradient: '' }, icon: '⚠️', tooltip: '' },
+    timeVolatility: { value: 70, gradient: { startColor: '#EF4444', midColor: '#F59E0B', endColor: '#10B981', currentColor: '#84CC16', cssGradient: '' }, icon: '📅', tooltip: '' },
+    overall: {
+      level: 'champion',
+      style: 'flag',
+      colors: { primary: '#10B981', accent: '#059669', text: '#FFFFFF' },
+      icon: '🏆',
+      description: 'Champion level recommendation',
+      racingTheme: { checkeredFlag: true }
+    }
   }
 };
 
 describe('RecommendationCard', () => {
+  const defaultProps = {
+    recommendation: mockRecommendation,
+    rank: 1,
+    mode: 'balanced' as RecommendationMode,
+  };
+
   it('should render series and track names', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
+    render(<RecommendationCard {...defaultProps} />);
+
     expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
-    expect(screen.getByText('Road Atlanta')).toBeInTheDocument();
+    // Track name is prefixed with @
+    expect(screen.getByText(/Road Atlanta/)).toBeInTheDocument();
   });
 
-  it('should display overall score with racing badge', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    // The overall score is now displayed as a racing badge, not a direct number
-    expect(screen.getByText('champion')).toBeInTheDocument();
+  it('should display rank badge', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    expect(screen.getByText('#1')).toBeInTheDocument();
   });
 
-  it('should show category and license badges', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    expect(screen.getByText('ROAD')).toBeInTheDocument();
-    expect(screen.getByText('D')).toBeInTheDocument();
+  it('should display different rank for secondary cards', () => {
+    render(<RecommendationCard {...defaultProps} rank={2} variant="secondary" />);
+
+    expect(screen.getByText('#2')).toBeInTheDocument();
   });
 
-  it('should display race length', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    expect(screen.getByText('45min')).toBeInTheDocument();
+  it('should show license badge', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    // LicenseBadge component shows the license level
+    const licenseBadges = screen.getAllByText('D');
+    // Find the one that's inside a span (the license badge)
+    const licenseBadge = licenseBadges.find(el => el.tagName === 'SPAN');
+    expect(licenseBadge).toBeInTheDocument();
   });
 
-  it('should show open setup badge when applicable', () => {
+  it('should show confidence badge for high confidence', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    // High confidence shown with checkmark
+    expect(screen.getByText('✓')).toBeInTheDocument();
+  });
+
+  it('should show confidence badge for estimated data', () => {
+    const estimatedRecommendation = {
+      ...mockRecommendation,
+      score: {
+        ...mockRecommendation.score,
+        dataConfidence: {
+          ...mockRecommendation.score.dataConfidence,
+          performance: 'estimated' as const
+        }
+      }
+    };
+
+    render(
+      <RecommendationCard
+        {...defaultProps}
+        recommendation={estimatedRecommendation}
+      />
+    );
+
+    // Estimated confidence shown with tilde
+    expect(screen.getByText('~')).toBeInTheDocument();
+  });
+
+  it('should display race length for primary variant', () => {
+    render(<RecommendationCard {...defaultProps} variant="primary" />);
+
+    expect(screen.getByText('45m')).toBeInTheDocument();
+  });
+
+  it('should show setup type for primary variant', () => {
+    render(<RecommendationCard {...defaultProps} variant="primary" />);
+
+    expect(screen.getByText('Fixed')).toBeInTheDocument();
+  });
+
+  it('should show open setup when applicable', () => {
     const openSetupRecommendation = {
       ...mockRecommendation,
       hasOpenSetup: true
     };
-    
-    render(<RecommendationCard recommendation={openSetupRecommendation} />);
-    
-    expect(screen.getByText('Open Setup')).toBeInTheDocument();
+
+    render(
+      <RecommendationCard
+        {...defaultProps}
+        recommendation={openSetupRecommendation}
+        variant="primary"
+      />
+    );
+
+    expect(screen.getByText('Open')).toBeInTheDocument();
   });
 
-  it('should display risk indicators with correct colors', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    expect(screen.getByText('LOW')).toBeInTheDocument(); // iRating risk
-    expect(screen.getByText('MEDIUM')).toBeInTheDocument(); // Safety risk
+  it('should show "Why This Race" section with factors', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    expect(screen.getByText('Why This Race')).toBeInTheDocument();
   });
 
-  it('should show factor breakdown with progress bars', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    expect(screen.getByText('Performance Factors')).toBeInTheDocument();
-    expect(screen.getByText('Performance')).toBeInTheDocument();
-    expect(screen.getByText('Safety')).toBeInTheDocument();
-    expect(screen.getByText('Consistency')).toBeInTheDocument();
-    expect(screen.getByText('78')).toBeInTheDocument(); // Performance score
-    expect(screen.getByText('92')).toBeInTheDocument(); // Safety score
+  it('should show expand/collapse button', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    expect(screen.getByText('More Details')).toBeInTheDocument();
   });
 
-  it('should display key insights when available', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    expect(screen.getByText('Key Insights')).toBeInTheDocument();
-    expect(screen.getByText('Strong performance history at this track')).toBeInTheDocument();
-    expect(screen.getByText('Low incident rate expected')).toBeInTheDocument();
-    expect(screen.getByText('Consistent field strength')).toBeInTheDocument();
+  it('should expand to show more details when clicked', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    const expandButton = screen.getByText('More Details');
+    fireEvent.click(expandButton);
+
+    // After expanding, should show scoring breakdown
+    expect(screen.getByText('Less Details')).toBeInTheDocument();
+    expect(screen.getByText('Scoring Breakdown')).toBeInTheDocument();
   });
 
-  it('should call onSelect when card is clicked', () => {
-    const mockOnSelect = jest.fn();
-    render(<RecommendationCard recommendation={mockRecommendation} onSelect={mockOnSelect} />);
-    
-    const card = screen.getByText('Skip Barber Formula 2000').closest('.cursor-pointer');
-    fireEvent.click(card!);
-    
-    expect(mockOnSelect).toHaveBeenCalledWith(mockRecommendation);
+  it('should collapse when clicked again', () => {
+    render(<RecommendationCard {...defaultProps} />);
+
+    const expandButton = screen.getByText('More Details');
+    fireEvent.click(expandButton);
+
+    const collapseButton = screen.getByText('Less Details');
+    fireEvent.click(collapseButton);
+
+    expect(screen.getByText('More Details')).toBeInTheDocument();
+    expect(screen.queryByText('Scoring Breakdown')).not.toBeInTheDocument();
   });
 
-  it('should handle missing reasoning gracefully', () => {
-    const recommendationWithoutReasoning = {
+  it('should display next race time for primary variant', () => {
+    render(<RecommendationCard {...defaultProps} variant="primary" />);
+
+    // First time slot is 14:00 UTC = 2:00 PM UTC
+    expect(screen.getByText(/2:00 PM UTC/)).toBeInTheDocument();
+  });
+
+  it('should handle missing time slots gracefully', () => {
+    const noTimeSlotsRecommendation = {
       ...mockRecommendation,
-      score: {
-        ...mockRecommendation.score,
-        reasoning: []
-      }
+      timeSlots: []
     };
-    
-    render(<RecommendationCard recommendation={recommendationWithoutReasoning} />);
-    
-    expect(screen.queryByText('Key Insights')).not.toBeInTheDocument();
+
+    render(
+      <RecommendationCard
+        {...defaultProps}
+        recommendation={noTimeSlotsRecommendation}
+        variant="primary"
+      />
+    );
+
+    expect(screen.getByText('Check schedule')).toBeInTheDocument();
   });
 
-  it('should format factor names correctly', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    expect(screen.getByText('Fatigue Risk')).toBeInTheDocument();
-    expect(screen.getByText('Attrition Risk')).toBeInTheDocument();
-    expect(screen.getByText('Time Volatility')).toBeInTheDocument();
-  });
+  describe('Mode-specific factor display', () => {
+    it('should prioritize performance factors in irating_push mode', () => {
+      render(
+        <RecommendationCard
+          {...defaultProps}
+          mode="irating_push"
+        />
+      );
 
-  it('should apply hover effects', () => {
-    render(<RecommendationCard recommendation={mockRecommendation} />);
-    
-    const card = screen.getByText('Skip Barber Formula 2000').closest('.hover\\:shadow-lg');
-    expect(card).toBeInTheDocument();
-  });
-
-  describe('Score Color Coding', () => {
-    it('should use racing badges for high scores (80+)', () => {
-      render(<RecommendationCard recommendation={mockRecommendation} />);
-      
-      // High scores show as "champion" badge
-      expect(screen.getByText('champion')).toBeInTheDocument();
+      // Position Gain should be prominent in iRating push mode
+      expect(screen.getByText('Position Gain')).toBeInTheDocument();
     });
 
-    it('should use racing badges for medium scores (60-79)', () => {
-      const mediumScoreRecommendation = {
-        ...mockRecommendation,
-        score: { ...mockRecommendation.score, overall: 65 }
-      };
-      
-      render(<RecommendationCard recommendation={mediumScoreRecommendation} />);
-      
-      // Medium scores show as "contender" badge
-      expect(screen.getByText('contender')).toBeInTheDocument();
-    });
+    it('should prioritize safety factors in safety_recovery mode', () => {
+      render(
+        <RecommendationCard
+          {...defaultProps}
+          mode="safety_recovery"
+        />
+      );
 
-    it('should use racing badges for low-medium scores (40-59)', () => {
-      const lowMediumScoreRecommendation = {
-        ...mockRecommendation,
-        score: { ...mockRecommendation.score, overall: 45 }
-      };
-      
-      render(<RecommendationCard recommendation={lowMediumScoreRecommendation} />);
-      
-      // Low-medium scores show as "rookie" badge
-      expect(screen.getByText('rookie')).toBeInTheDocument();
-    });
-
-    it('should use racing badges for low scores (<40)', () => {
-      const lowScoreRecommendation = {
-        ...mockRecommendation,
-        score: { ...mockRecommendation.score, overall: 25 }
-      };
-      
-      render(<RecommendationCard recommendation={lowScoreRecommendation} />);
-      
-      // Low scores show as "rookie" badge
-      expect(screen.getByText('rookie')).toBeInTheDocument();
+      // Safety should be prominent in safety recovery mode
+      expect(screen.getByText('Safety')).toBeInTheDocument();
     });
   });
 
-  describe('Risk Badge Colors', () => {
-    it('should use success variant for low risk', () => {
-      render(<RecommendationCard recommendation={mockRecommendation} />);
-      
-      // iRating risk is 'low' in mock data
-      const lowRiskBadges = screen.getAllByText('LOW');
-      expect(lowRiskBadges[0]).toBeInTheDocument();
+  describe('Visual styling', () => {
+    it('should apply primary variant styling', () => {
+      const { container } = render(
+        <RecommendationCard {...defaultProps} variant="primary" />
+      );
+
+      // Primary variant has p-6 padding
+      expect(container.querySelector('.p-6')).toBeInTheDocument();
     });
 
-    it('should use warning variant for medium risk', () => {
-      render(<RecommendationCard recommendation={mockRecommendation} />);
-      
-      // Safety risk is 'medium' in mock data
-      const mediumRiskBadges = screen.getAllByText('MEDIUM');
-      expect(mediumRiskBadges[0]).toBeInTheDocument();
+    it('should apply secondary variant styling', () => {
+      const { container } = render(
+        <RecommendationCard {...defaultProps} variant="secondary" />
+      );
+
+      // Secondary variant has p-4 padding
+      expect(container.querySelector('.p-4')).toBeInTheDocument();
     });
 
-    it('should use danger variant for high risk', () => {
-      const highRiskRecommendation = {
-        ...mockRecommendation,
-        score: {
-          ...mockRecommendation.score,
-          iRatingRisk: 'high' as const
-        }
-      };
-      
-      render(<RecommendationCard recommendation={highRiskRecommendation} />);
-      
-      expect(screen.getByText('HIGH')).toBeInTheDocument();
+    it('should accept custom className', () => {
+      const { container } = render(
+        <RecommendationCard {...defaultProps} className="custom-class" />
+      );
+
+      expect(container.querySelector('.custom-class')).toBeInTheDocument();
     });
   });
 });

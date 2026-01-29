@@ -1,238 +1,262 @@
 'use client';
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { RacingProgress } from '@/components/ui/racing-progress';
-import { RacingBadgeComponent, ConfidenceBadgeComponent } from '@/components/ui/racing-badge';
-import { ScoredOpportunity, ScoredRecommendation, RiskLevel } from '@/lib/recommendations/types';
-import { visualScoringRenderer } from '@/lib/recommendations/visual-scoring';
-import { Flag, AlertTriangle, ChevronDown, Lightbulb } from 'lucide-react';
+import { useState } from 'react';
+import { LicenseBadge } from '@/components/ui/LicenseBadge';
+import { ScoreProgressBar } from '@/components/ui/ScoreProgressBar';
+import { ConfidenceBadge } from './ConfidenceBadge';
+import { RecommendationDetails } from './RecommendationDetails';
+import type { ScoredRecommendation, RecommendationMode } from '@/lib/recommendations/types';
 
 interface RecommendationCardProps {
-  recommendation: ScoredOpportunity | ScoredRecommendation;
-  onSelect?: (recommendation: ScoredOpportunity | ScoredRecommendation) => void;
+  recommendation: ScoredRecommendation;
+  rank: number;
+  mode: RecommendationMode;
+  variant?: 'primary' | 'secondary';
+  className?: string;
 }
 
-const getRiskColor = (risk: RiskLevel) => {
-  switch (risk) {
-    case 'low':
-      return 'success';
-    case 'medium':
-      return 'warning';
-    case 'high':
-      return 'danger';
-    default:
-      return 'secondary';
-  }
-};
+/**
+ * Get timezone abbreviation from a Date
+ */
+function getTimezoneAbbreviation(): string {
+  const date = new Date();
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-export function RecommendationCard({ recommendation, onSelect }: RecommendationCardProps) {
-  const { score } = recommendation;
-  
-  // Check if this is a ScoredRecommendation with visual indicators or legacy ScoredOpportunity
-  const hasVisualIndicators = 'visualIndicators' in recommendation;
-  const visualIndicators = hasVisualIndicators 
-    ? recommendation.visualIndicators 
-    : visualScoringRenderer.renderVisualScoring(score);
+  // Get the timezone abbreviation using formatToParts
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZoneName: 'short',
+    timeZone,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const tzPart = parts.find(p => p.type === 'timeZoneName');
+  return tzPart?.value || '';
+}
+
+/**
+ * Format race time for display in user's local timezone
+ */
+function formatNextRaceTime(timeSlots: ScoredRecommendation['timeSlots']): string {
+  if (!timeSlots || timeSlots.length === 0) return 'Check schedule';
+
+  const slot = timeSlots[0];
+  const utcHour = slot.hour;
+
+  // Create a date in UTC with the race hour
+  const now = new Date();
+  const utcDate = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    utcHour,
+    0,
+    0
+  ));
+
+  // Format in local timezone
+  const localHour = utcDate.getHours();
+  const ampm = localHour >= 12 ? 'PM' : 'AM';
+  const hour12 = localHour % 12 || 12;
+  const tzAbbr = getTimezoneAbbreviation();
+
+  return `${hour12}:00 ${ampm} (${tzAbbr})`;
+}
+
+/**
+ * Format race frequency
+ */
+function formatRaceFrequency(timeSlots: ScoredRecommendation['timeSlots']): string {
+  if (!timeSlots || timeSlots.length === 0) return '';
+  if (timeSlots.length >= 12) return 'Every 2 hours';
+  if (timeSlots.length >= 6) return 'Every 4 hours';
+  if (timeSlots.length >= 3) return 'Several times daily';
+  return 'Limited schedule';
+}
+
+/**
+ * Get the relevant "Why" factors based on mode
+ * No emojis - ScoreProgressBar will use colored dots based on value
+ */
+function getModeRelevantFactors(
+  mode: RecommendationMode,
+  factors: ScoredRecommendation['score']['factors']
+): { label: string; value: number; description: string }[] {
+  const allFactors = [
+    { label: 'Position Gain', value: factors.performance, description: 'Expected finish improvement' },
+    { label: 'Safety', value: factors.safety, description: 'Low incident likelihood' },
+    { label: 'Familiarity', value: factors.familiarity, description: 'Your experience here' },
+    { label: 'Consistency', value: factors.consistency, description: 'Predictable results' },
+  ];
+
+  if (mode === 'safety_recovery') {
+    return [allFactors[1], allFactors[3], allFactors[2], allFactors[0]];
+  }
+  if (mode === 'irating_push') {
+    return [allFactors[0], allFactors[2], allFactors[3], allFactors[1]];
+  }
+  return allFactors.slice(0, 3);
+}
+
+/**
+ * RecommendationCard - Clean design with stats and expandable details
+ */
+export function RecommendationCard({
+  recommendation,
+  rank,
+  mode,
+  variant = 'primary',
+  className = '',
+}: RecommendationCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const { score, timeSlots } = recommendation;
+  const isPrimary = variant === 'primary';
+
+  const relevantFactors = getModeRelevantFactors(mode, score.factors);
+
+  const confidenceLevel =
+    score.dataConfidence.performance === 'high' && score.dataConfidence.safety === 'high'
+      ? 'high'
+      : score.dataConfidence.performance === 'estimated' || score.dataConfidence.safety === 'estimated'
+        ? 'estimated'
+        : 'no_data';
 
   return (
-    <Card 
-      className="hover:shadow-lg transition-all duration-200 cursor-pointer racing-card h-full flex flex-col"
-      onClick={() => onSelect?.(recommendation)}
+    <div
+      className={`
+        bg-white dark:bg-racing-gray-800 rounded-xl border border-racing-gray-200 dark:border-racing-gray-700
+        shadow-sm hover:shadow-md transition-shadow
+        ${isPrimary ? 'p-6' : 'p-4'}
+        ${className}
+      `}
     >
-      <CardHeader className="pb-4">
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1 min-w-0">
-            {/* Primary heading - Series name with consistent typography */}
-            <CardTitle className="text-lg font-bold text-gray-900 leading-tight truncate">
-              {recommendation.seriesName}
-            </CardTitle>
-            {/* Secondary information - Track name with consistent spacing */}
-            <p className="text-sm font-medium text-gray-700 mt-2 truncate">
-              {recommendation.trackName}
+      {/* Header */}
+      <div className="flex items-start gap-4">
+        {/* Rank badge */}
+        <div
+          className={`
+            flex-shrink-0 flex items-center justify-center rounded-lg font-bold
+            ${isPrimary
+              ? 'w-10 h-10 text-lg bg-racing-blue text-white'
+              : 'w-8 h-8 text-sm bg-racing-gray-100 dark:bg-racing-gray-700 text-racing-gray-600 dark:text-racing-gray-300'
+            }
+          `}
+        >
+          #{rank}
+        </div>
+
+        {/* Series and Track info */}
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-bold text-racing-gray-900 dark:text-white truncate ${isPrimary ? 'text-lg' : 'text-base'}`}>
+            {recommendation.seriesName}
+          </h3>
+          <p className="text-racing-gray-600 dark:text-racing-gray-400 truncate">
+            @ {recommendation.trackName}
+          </p>
+        </div>
+
+        {/* Confidence badge */}
+        <ConfidenceBadge level={confidenceLevel} size={isPrimary ? 'md' : 'sm'} />
+      </div>
+
+      {/* Stats row */}
+      <div className={`grid gap-4 mt-4 ${isPrimary ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {/* User history */}
+        <div className="bg-racing-gray-50 dark:bg-racing-gray-900/50 rounded-lg p-3">
+          <p className="text-xs font-medium text-racing-gray-500 dark:text-racing-gray-400 uppercase tracking-wide mb-2">
+            Your History
+          </p>
+          <div className="flex items-center gap-4 text-sm flex-wrap">
+            <div className="flex items-center gap-1">
+              <span className="text-racing-gray-500 dark:text-racing-gray-400">Races:</span>
+              <strong className="text-racing-gray-700 dark:text-racing-gray-300">
+                {score.factors.familiarity > 0 ? Math.ceil(score.factors.familiarity / 10) : 0}
+              </strong>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-racing-gray-500 dark:text-racing-gray-400">Avg Position:</span>
+              <strong className={score.factors.performance >= 50 ? 'text-emerald-600' : 'text-amber-500'}>
+                {score.factors.performance >= 50 ? '+' : ''}{((score.factors.performance - 50) / 10).toFixed(1)}
+              </strong>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-racing-gray-500 dark:text-racing-gray-400">Avg Incidents:</span>
+              <strong className={score.factors.safety >= 60 ? 'text-emerald-600' : 'text-amber-500'}>
+                {((100 - score.factors.safety) / 10).toFixed(1)}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        {/* This week info */}
+        {isPrimary && (
+          <div className="bg-racing-gray-50 dark:bg-racing-gray-900/50 rounded-lg p-3">
+            <p className="text-xs font-medium text-racing-gray-500 dark:text-racing-gray-400 uppercase tracking-wide mb-2">
+              This Week
+            </p>
+            <div className="flex items-center gap-3 text-sm flex-wrap">
+              <span className="text-racing-gray-700 dark:text-racing-gray-300">
+                Next: <strong>{formatNextRaceTime(timeSlots)}</strong>
+              </span>
+              <span className="text-racing-gray-400">|</span>
+              <span className="text-racing-gray-600 dark:text-racing-gray-400">{recommendation.raceLength}m</span>
+              <span className="text-racing-gray-400">|</span>
+              <span className="text-racing-gray-600 dark:text-racing-gray-400">
+                {recommendation.hasOpenSetup ? 'Open' : 'Fixed'}
+              </span>
+              <span className="text-racing-gray-400">|</span>
+              <LicenseBadge level={recommendation.licenseRequired} variant="full" size="sm" />
+            </div>
+            <p className="text-xs text-racing-gray-500 dark:text-racing-gray-400 mt-1">
+              {formatRaceFrequency(timeSlots)}
             </p>
           </div>
-          <div className="text-right flex flex-col items-end gap-2 flex-shrink-0">
-            {/* Overall Racing Badge - consistent sizing */}
-            <RacingBadgeComponent 
-              badge={visualIndicators.overall} 
-              className="text-xs"
-            />
-            
-            {/* Confidence Indicators - standardized sizing */}
-            <ConfidenceBadgeComponent 
-              badge={visualScoringRenderer.renderConfidenceBadge(
-                score.dataConfidence?.performance || 'no_data'
-              )}
-              className="text-xs px-2 py-1"
-            />
-          </div>
-        </div>
-        
-        {/* Badges with consistent spacing and responsive wrapping */}
-        <div className="flex gap-2 mt-4 flex-wrap">
-          <Badge variant="outline" className="text-xs px-2 py-1 racing-category-badge">
-            {recommendation.category.replace('_', ' ').toUpperCase()}
-          </Badge>
-          <Badge variant="outline" className="text-xs px-2 py-1 racing-license-badge">
-            {recommendation.licenseRequired.toUpperCase()}
-          </Badge>
-          <Badge variant="outline" className="text-xs px-2 py-1 racing-duration-badge">
-            {recommendation.raceLength}min
-          </Badge>
-          {recommendation.hasOpenSetup && (
-            <Badge variant="secondary" className="text-xs px-2 py-1 racing-setup-badge">
-              Open Setup
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-0 flex-1">
-        {/* Racing-themed Factor Scores with consistent spacing */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-            <Flag className="w-4 h-4" />
-            Performance Factors
-          </h4>
-          
-          {/* Primary Performance Factors with consistent grid */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-20 text-xs text-gray-600 font-medium">
-                Performance
-              </div>
-              <RacingProgress 
-                progressBar={visualIndicators.performance} 
-                className="flex-1"
-                showIcon={false}
-              />
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-20 text-xs text-gray-600 font-medium">
-                Safety
-              </div>
-              <RacingProgress 
-                progressBar={visualIndicators.safety} 
-                className="flex-1"
-                showIcon={false}
-              />
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-20 text-xs text-gray-600 font-medium">
-                Consistency
-              </div>
-              <RacingProgress 
-                progressBar={visualIndicators.consistency} 
-                className="flex-1"
-                showIcon={false}
-              />
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-20 text-xs text-gray-600 font-medium">
-                Familiarity
-              </div>
-              <RacingProgress 
-                progressBar={visualIndicators.familiarity} 
-                className="flex-1"
-                showIcon={false}
-              />
-            </div>
-          </div>
-          
-          {/* Secondary Risk Factors - Collapsible with consistent styling */}
-          <details className="mt-4">
-            <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2 py-2">
-              <AlertTriangle className="w-3 h-3" />
-              <span>Risk Analysis</span>
-              <ChevronDown className="w-3 h-3 ml-auto" />
-            </summary>
-            <div className="mt-3 space-y-3 pl-4 border-l-2 border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-20 text-xs text-gray-600">
-                  Predictability
-                </div>
-                <RacingProgress 
-                  progressBar={visualIndicators.predictability} 
-                  className="flex-1"
-                  showIcon={false}
-                />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="w-20 text-xs text-gray-600">
-                  Attrition Risk
-                </div>
-                <RacingProgress 
-                  progressBar={visualIndicators.attritionRisk} 
-                  className="flex-1"
-                  showIcon={false}
-                />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="w-20 text-xs text-gray-600">
-                  Fatigue Risk
-                </div>
-                <RacingProgress 
-                  progressBar={visualIndicators.fatigueRisk} 
-                  className="flex-1"
-                  showIcon={false}
-                />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="w-20 text-xs text-gray-600">
-                  Time Volatility
-                </div>
-                <RacingProgress 
-                  progressBar={visualIndicators.timeVolatility} 
-                  className="flex-1"
-                  showIcon={false}
-                />
-              </div>
-            </div>
-          </details>
-        </div>
-
-        {/* Legacy Risk Indicators with consistent spacing */}
-        <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">iRating Risk:</span>
-            <Badge variant={getRiskColor(score.iRatingRisk)} className="text-xs px-2 py-1">
-              {score.iRatingRisk.toUpperCase()}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">Safety Risk:</span>
-            <Badge variant={getRiskColor(score.safetyRatingRisk)} className="text-xs px-2 py-1">
-              {score.safetyRatingRisk.toUpperCase()}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Key Insights with consistent styling */}
-        {score.reasoning && score.reasoning.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4" />
-              Key Insights
-            </h4>
-            <ul className="text-xs text-gray-600 space-y-2">
-              {score.reasoning.slice(0, 3).map((reason, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-gray-400 mt-0.5 flex-shrink-0">•</span>
-                  <span className="leading-relaxed">{reason}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Why This Race section */}
+      <div className="mt-4">
+        <p className="text-xs font-medium text-racing-gray-500 dark:text-racing-gray-400 uppercase tracking-wide mb-3">
+          Why This Race
+        </p>
+        <div className="space-y-2">
+          {relevantFactors.slice(0, isPrimary ? 3 : 2).map((factor) => (
+            <ScoreProgressBar
+              key={factor.label}
+              value={factor.value}
+              label={factor.label}
+              description={isPrimary ? factor.description : undefined}
+              size={isPrimary ? 'md' : 'sm'}
+              showValue
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Expand/collapse button */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full mt-4 py-2 text-sm text-racing-gray-500 dark:text-racing-gray-400 hover:text-racing-gray-700 dark:hover:text-racing-gray-200 flex items-center justify-center gap-1 transition-colors"
+      >
+        {isExpanded ? 'Less Details' : 'More Details'}
+        <svg
+          className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Expanded details */}
+      {isExpanded && (
+        <RecommendationDetails
+          recommendation={recommendation}
+          mode={mode}
+          className="mt-4 pt-4 border-t border-racing-gray-200 dark:border-racing-gray-700"
+        />
+      )}
+    </div>
   );
 }

@@ -161,6 +161,74 @@ The schedule data pipeline was fixed to properly:
 - Recommendations card layout improvements
 - Score visualization refinements
 
+### Active Feature Flags
+
+**Location:** `src/lib/feature-flags/`
+
+| Flag | Description | Toggle Location |
+|------|-------------|-----------------|
+| `mockProfile` | Use fake user data for testing UI | Header dropdown (right side) |
+
+**Mock Profiles Available:**
+
+| Profile | Description | Use Case |
+|---------|-------------|----------|
+| `new_driver` | Rookie licenses, 12 races, MX-5 focus | Test empty/low-data states |
+| `road_veteran` | A-class road, 487 races, GT3/IMSA | Test high-confidence recommendations |
+| `oval_specialist` | NASCAR A-class, 623 races | Test oval-specific UI |
+| `multi_discipline` | B-class everything, 312 races | Test all categories |
+| `safety_recovery` | Low SR (2.1), needs recovery | Test safety mode recommendations |
+
+**Usage:**
+- Select a profile from the dropdown in the header
+- Dropdown turns amber when mock data is active
+- Hover for profile description tooltip
+- Select "Real Data" to return to actual API data
+
+**Files:**
+- `src/lib/feature-flags/context.tsx` - Feature flag context and provider
+- `src/lib/feature-flags/mock-profiles.ts` - Mock user profile data
+- `src/lib/hooks/useRecommendations.ts` - Hook integration
+
+---
+
+### Removed Feature: Track Outline SVGs (Jan 2025)
+
+**Decision:** Removed track outline SVG feature from recommendation cards.
+
+**What it was:**
+- SVG track outlines displayed on recommendation cards to visually identify tracks
+- Located in `src/components/ui/TrackOutline.tsx`
+- Feature flag system (`src/lib/feature-flags/`) allowed toggling display modes
+
+**Display modes tested:**
+1. `inline` - SVG next to rank badge (added visual clutter, cramped secondary cards)
+2. `badge` - SVG overlaid behind rank badge (color contrast issues with gray badges)
+3. `background` - Large low-opacity SVG as card background (positioning issues)
+4. `none` - No SVGs (cleanest design, preferred)
+
+**Why removed:**
+1. **Poor data quality** - Track SVGs were hand-drawn approximations, not accurate representations. Only ~14 tracks had custom paths; everything else used generic shapes.
+2. **No good data source** - Researched alternatives:
+   - [ir-mapoverlay](https://github.com/MorisatoK/ir-mapoverlay) - Has track data but archived
+   - [irdashies](https://github.com/tariknz/irdashies) - Generates from live iRacing SDK (requires connection)
+   - [f1-track-vectors](https://github.com/f1laps/f1-track-vectors) - F1 only, ~20 tracks
+   - iRacing telemetry - Could generate from GPS data but complex
+3. **Visual clutter** - All display modes added noise without proportional value
+4. **Maintenance burden** - Would need to maintain 100+ track SVGs to be useful
+
+**Files removed:**
+- `src/components/ui/TrackOutline.tsx`
+- `src/lib/feature-flags/` (entire directory)
+
+**Files modified:**
+- `src/components/recommendations/RecommendationCard.tsx` - Removed TrackOutline usage
+- `src/components/ui/index.ts` - Removed TrackOutline export
+- `src/app/dashboard/layout.tsx` - Removed FeatureFlagsProvider
+- `src/components/layout/DashboardHeader.tsx` - Removed feature flag toggle
+
+**Future consideration:** If accurate track data becomes available (e.g., from iRacing SDK or community project), this feature could be revisited. Would need 100+ accurate track SVGs to be worthwhile.
+
 ## Development Guidelines
 
 ### OAuth Requirements

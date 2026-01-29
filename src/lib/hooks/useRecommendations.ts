@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { RecommendationMode, RecommendationResponse } from '@/lib/recommendations/types';
+import { useFeatureFlags, getMockProfile } from '@/lib/feature-flags';
 
 interface UseRecommendationsOptions {
   mode: RecommendationMode;
@@ -45,11 +46,52 @@ export function useRecommendations(options: UseRecommendationsOptions): UseRecom
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const maxRetries = 3;
 
+  // Check for mock profile
+  const { flags } = useFeatureFlags();
+  const mockProfile = flags.mockProfile;
+
+  // If mock profile is active, return mock data immediately
+  useEffect(() => {
+    if (mockProfile) {
+      const mockData = getMockProfile(mockProfile);
+      if (mockData) {
+        // Filter recommendations by category if specified
+        let filteredRecommendations = mockData.recommendations;
+        if (options.category) {
+          filteredRecommendations = mockData.recommendations.filter(
+            rec => rec.category === options.category
+          );
+        }
+
+        // Sort by mode-appropriate score
+        filteredRecommendations = [...filteredRecommendations].sort((a, b) => {
+          if (options.mode === 'safety_recovery') {
+            return b.score.factors.safety - a.score.factors.safety;
+          } else if (options.mode === 'irating_push') {
+            return b.score.factors.performance - a.score.factors.performance;
+          }
+          return b.score.overall - a.score.overall;
+        });
+
+        setData({
+          ...mockData,
+          recommendations: filteredRecommendations.slice(0, options.maxResults || 20),
+        });
+        setLoading(false);
+        setError(null);
+      }
+    }
+  }, [mockProfile, options.category, options.mode, options.maxResults]);
+
   const fetchRecommendations = useCallback(async (isRetry = false) => {
+    // Skip API call if using mock data
+    if (mockProfile) {
+      return;
+    }
     try {
       // Cancel any existing request
       if (abortControllerRef.current) {
@@ -135,23 +177,34 @@ export function useRecommendations(options: UseRecommendationsOptions): UseRecom
       setLoading(false);
       setIsRetrying(false);
     }
-  }, [options.mode, options.category, options.minScore, options.maxResults, options.includeAlmostEligible, retryCount]);
+  }, [options.mode, options.category, options.minScore, options.maxResults, options.includeAlmostEligible, retryCount, mockProfile]);
 
   const manualRefetch = useCallback(async () => {
+    // If using mock data, just trigger re-render by toggling loading
+    if (mockProfile) {
+      setLoading(true);
+      setTimeout(() => setLoading(false), 100);
+      return;
+    }
     setRetryCount(0);
     await fetchRecommendations(false);
-  }, [fetchRecommendations]);
+  }, [fetchRecommendations, mockProfile]);
 
   useEffect(() => {
+    // Skip API fetch if using mock data (handled by separate useEffect above)
+    if (mockProfile) {
+      return;
+    }
+
     fetchRecommendations();
-    
+
     // Cleanup function to abort any pending requests
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
-  }, [fetchRecommendations]);
+  }, [fetchRecommendations, mockProfile]);
 
   return {
     data,
