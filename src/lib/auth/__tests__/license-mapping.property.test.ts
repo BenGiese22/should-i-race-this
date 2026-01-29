@@ -213,9 +213,17 @@ describe('License Category Mapping Properties', () => {
    * For any invalid group name, should fall back to 'rookie'
    */
   test('Property: Fallback Behavior for Invalid Group Names', () => {
+    // All valid license inputs that should NOT be considered invalid
+    const validInputs = [
+      'rookie', 'class d', 'class c', 'class b', 'class a', 'pro', 'professional',
+      'd', 'c', 'b', 'a',
+      // Numeric strings that map to valid license levels
+      '1', '2', '3', '4', '5', '6'
+    ];
+
     fc.assert(
       fc.property(
-        fc.string().filter(s => !['rookie', 'class d', 'class c', 'class b', 'class a', 'pro', 'professional', 'd', 'c', 'b', 'a'].includes(s.toLowerCase().trim())),
+        fc.string().filter(s => !validInputs.includes(s.toLowerCase().trim())),
         (invalidGroupName) => {
           const result = mapLicenseLevelFromGroupName(invalidGroupName);
           expect(result).toBe('Rookie');

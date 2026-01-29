@@ -105,11 +105,9 @@ describe('RecommendationCard', () => {
   it('should show license badge', () => {
     render(<RecommendationCard {...defaultProps} />);
 
-    // LicenseBadge component shows the license level
-    const licenseBadges = screen.getAllByText('D');
-    // Find the one that's inside a span (the license badge)
-    const licenseBadge = licenseBadges.find(el => el.tagName === 'SPAN');
-    expect(licenseBadge).toBeInTheDocument();
+    // LicenseBadge component shows the full license label (e.g., "Class D")
+    // The component uses variant="full" which displays the full label
+    expect(screen.getByText('Class D')).toBeInTheDocument();
   });
 
   it('should show confidence badge for high confidence', () => {
@@ -210,8 +208,10 @@ describe('RecommendationCard', () => {
   it('should display next race time for primary variant', () => {
     render(<RecommendationCard {...defaultProps} variant="primary" />);
 
-    // First time slot is 14:00 UTC = 2:00 PM UTC
-    expect(screen.getByText(/2:00 PM UTC/)).toBeInTheDocument();
+    // First time slot is 14:00 UTC, displayed in local timezone
+    // The component converts UTC to local time with timezone abbreviation
+    // e.g. "2:00 PM (EST)" or "9:00 AM (PST)" depending on local timezone
+    expect(screen.getByText(/\d{1,2}:00 (AM|PM) \([A-Z]{2,4}\)/)).toBeInTheDocument();
   });
 
   it('should handle missing time slots gracefully', () => {
