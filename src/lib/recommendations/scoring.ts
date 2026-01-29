@@ -136,35 +136,46 @@ export class ScoringAlgorithm {
 
   /**
    * Factor 2: Safety - Blended personal and global incidents per race with improved cross-series analysis (lower is better)
+   * Now includes race length adjustment for unfamiliar series
    */
   private calculateSafetyFactor(
-    opportunity: RacingOpportunity, 
-    userHistory: UserHistory, 
+    opportunity: RacingOpportunity,
+    userHistory: UserHistory,
     seriesTrackHistory?: SeriesTrackHistory
   ): number {
     let expectedIncidents = 0;
-    
+
     if (seriesTrackHistory && seriesTrackHistory.raceCount >= 3) {
-      // Use personal history if sufficient data
+      // Use personal history if sufficient data - no race length adjustment needed
+      // because the history already reflects this specific series/track's race length
       expectedIncidents = seriesTrackHistory.avgIncidents;
     } else {
-      // Enhanced cross-series safety analysis
+      // Enhanced cross-series safety analysis with race length adjustment
       const userLicense = userHistory.licenseClasses.find(l => l.category === opportunity.category);
       const overallIncidents = userHistory.overallStats.avgIncidentsPerRace;
       const globalIncidents = opportunity.globalStats.avgIncidentsPerRace;
-      
+
+      // Calculate race length multiplier (baseline: 20 minutes)
+      // Longer races = more opportunity for incidents
+      const baselineRaceLength = 20;
+      const raceLengthMultiplier = this.getRaceLengthIncidentMultiplier(opportunity.raceLength, baselineRaceLength);
+
       if (userHistory.overallStats.totalRaces >= 3 && userLicense) {
         // Blend personal overall with global, adjusted for safety rating
         const safetyRatingBonus = this.getSafetyRatingBonus(userLicense.safetyRating);
         const personalWeight = Math.min(userHistory.overallStats.totalRaces / 10, 0.7);
         const globalWeight = 1 - personalWeight;
-        
+
         const adjustedPersonalIncidents = Math.max(0, overallIncidents + safetyRatingBonus);
-        expectedIncidents = (adjustedPersonalIncidents * personalWeight) + (globalIncidents * globalWeight);
+        const baseExpectedIncidents = (adjustedPersonalIncidents * personalWeight) + (globalIncidents * globalWeight);
+
+        // Apply race length multiplier for unfamiliar series
+        expectedIncidents = baseExpectedIncidents * raceLengthMultiplier;
       } else {
-        // Limited data - use global with safety rating adjustment
+        // Limited data - use global with safety rating adjustment and race length multiplier
         const safetyRatingBonus = userLicense ? this.getSafetyRatingBonus(userLicense.safetyRating) : 0;
-        expectedIncidents = Math.max(0, globalIncidents + safetyRatingBonus);
+        const baseExpectedIncidents = Math.max(0, globalIncidents + safetyRatingBonus);
+        expectedIncidents = baseExpectedIncidents * raceLengthMultiplier;
       }
     }
     
@@ -172,20 +183,13 @@ export class ScoringAlgorithm {
     if (isNaN(expectedIncidents) || !isFinite(expectedIncidents)) {
       expectedIncidents = 2.5; // Default moderate incident rate
     }
-    
+
     // Convert incidents to 0-100 score (lower incidents = higher score)
-    // Expanded range to better differentiate between high incident rates
-    // Assume typical incident range is 0-12 per race (expanded from 0-8)
-    const normalizedIncidents = Math.max(0, Math.min(12, expectedIncidents));
-    const safetyScore = Math.round((1 - (normalizedIncidents / 12)) * 100);
-    
-    // Ensure we never return exactly the same score for different incident rates
-    // Add small differentiation for very high incident rates
-    if (expectedIncidents > 8 && expectedIncidents <= 12) {
-      const highIncidentPenalty = Math.floor((expectedIncidents - 8) * 0.5);
-      return Math.max(0, safetyScore - highIncidentPenalty);
-    }
-    
+    // Range expanded to 0-20 to account for race length multiplier (up to 2x)
+    // This ensures differentiation is preserved even for high incident rates in long races
+    const normalizedIncidents = Math.max(0, Math.min(20, expectedIncidents));
+    const safetyScore = Math.round((1 - (normalizedIncidents / 20)) * 100);
+
     return safetyScore;
   }
 
@@ -195,6 +199,27 @@ export class ScoringAlgorithm {
   private getSafetyRatingBonus(safetyRating: number): number {
     // Safety rating above 3.0 reduces expected incidents, below increases them
     return (3.0 - safetyRating) * 0.5; // ±0.5 incidents per SR point from 3.0
+  }
+
+  /**
+   * Calculate incident multiplier based on race length
+   * Longer races provide more opportunity for incidents, but not linearly
+   * Uses a logarithmic scale to avoid over-penalizing very long races
+   */
+  private getRaceLengthIncidentMultiplier(raceLength: number, baselineLength: number = 20): number {
+    if (raceLength <= baselineLength) {
+      // Shorter or equal to baseline: no penalty, slight bonus for very short races
+      return Math.max(0.8, raceLength / baselineLength);
+    }
+
+    // Longer than baseline: use logarithmic scaling to avoid extreme penalties
+    // A 60-min race is ~1.5x baseline, not 3x
+    // A 120-min race is ~1.8x baseline, not 6x
+    const ratio = raceLength / baselineLength;
+    const multiplier = 1 + Math.log2(ratio) * 0.5;
+
+    // Cap at 2.0x to avoid extreme penalties for endurance races
+    return Math.min(2.0, multiplier);
   }
 
   /**
