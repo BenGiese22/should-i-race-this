@@ -156,10 +156,11 @@ The schedule data pipeline was fixed to properly:
 - E2E tests with Playwright are incomplete
 
 ### UI Polish Needed
-- License category display consistency
+- ~~License category display consistency~~ ✅ COMPLETE - Borderless dropdown styling
 - Clear indication of sports_car vs formula_car
-- Recommendations card layout improvements
+- ~~Recommendations card layout improvements~~ ✅ COMPLETE - Right-aligned controls, cleaner layout
 - Score visualization refinements
+- ~~License badge colors not rendering~~ ✅ COMPLETE - Added Tailwind safelist
 
 ### Active Feature Flags
 
@@ -199,7 +200,6 @@ The schedule data pipeline was fixed to properly:
 **What it was:**
 - SVG track outlines displayed on recommendation cards to visually identify tracks
 - Located in `src/components/ui/TrackOutline.tsx`
-- Feature flag system (`src/lib/feature-flags/`) allowed toggling display modes
 
 **Display modes tested:**
 1. `inline` - SVG next to rank badge (added visual clutter, cramped secondary cards)
@@ -219,15 +219,37 @@ The schedule data pipeline was fixed to properly:
 
 **Files removed:**
 - `src/components/ui/TrackOutline.tsx`
-- `src/lib/feature-flags/` (entire directory)
 
 **Files modified:**
 - `src/components/recommendations/RecommendationCard.tsx` - Removed TrackOutline usage
 - `src/components/ui/index.ts` - Removed TrackOutline export
-- `src/app/dashboard/layout.tsx` - Removed FeatureFlagsProvider
-- `src/components/layout/DashboardHeader.tsx` - Removed feature flag toggle
 
 **Future consideration:** If accurate track data becomes available (e.g., from iRacing SDK or community project), this feature could be revisited. Would need 100+ accurate track SVGs to be worthwhile.
+
+---
+
+### Recent UI Polish (Jan 2025)
+
+**Dropdown Styling Consistency:**
+- Updated `ThemeToggle.tsx` and `CategoryDropdown.tsx` to use borderless styling
+- Matches the mode pill selector design (no visible border, subtle background)
+- Styling: `bg-racing-gray-100 dark:bg-racing-gray-800` with no border
+
+**Layout Improvements:**
+- Category dropdown now right-aligned with sync button (using `sm:justify-between`)
+- Mode selector and category selector on same row for cleaner UI
+- Empty state section layout improved
+
+**License Badge Color Fix:**
+- Added Tailwind safelist in `tailwind.config.js` for license badge colors
+- Fixed issue where dynamic class names weren't being included by Tailwind JIT
+- Colors: Rookie (red), D (orange), C (yellow), B (green), A (blue), Pro (gray)
+
+**Files modified:**
+- `src/components/theme/ThemeToggle.tsx` - Borderless dropdown styling
+- `src/components/recommendations/CategoryDropdown.tsx` - Borderless + right alignment
+- `src/components/recommendations/RecommendationsPageNew.tsx` - Layout adjustments
+- `tailwind.config.js` - Safelist for license badge colors
 
 ## Development Guidelines
 
@@ -295,11 +317,15 @@ src/
 │   ├── dashboard/     # Main dashboard pages
 │   └── oauth/         # OAuth callback handling
 ├── components/
+│   ├── layout/           # Layout components (DashboardHeader)
 │   ├── recommendations/  # Recommendation UI components
+│   ├── theme/            # Theme components (ThemeToggle)
 │   └── ui/               # Shared UI components
 └── lib/
     ├── auth/          # Authentication logic
     ├── db/            # Database schema, analytics queries
+    ├── feature-flags/ # Feature flags + mock user profiles
+    ├── hooks/         # Custom React hooks (useRecommendations)
     ├── iracing/       # iRacing API client, sync, session types
     ├── recommendations/  # Recommendation engine, scoring
     └── types/         # TypeScript type definitions
@@ -360,30 +386,21 @@ Address the 10 failing test suites before adding new features.
 
 ### Priority 3: Navigation & User Flow Rework
 
-**Current Flow (Problem):**
-- User lands on Performance Dashboard
-- Must navigate to Recommendations from there
-- Not intuitive for the core value proposition
+**Sticky Header Navigation:** ✅ COMPLETE
+- Persistent header bar at top of application (`src/components/layout/DashboardHeader.tsx`)
+- Clear navigation between Performance and Recommendations
+- Logo/brand with responsive text (full name on desktop, "SIRT" on mobile)
+- Icons for each navigation item
+- Mock profile selector for debugging
+- Theme toggle (light/dark/system)
 
-**Proposed Flow Options:**
+**Remaining Work:**
 
-**Option A: Landing Page with Clear Choices**
-- Two large, clear boxes/cards on landing page:
-  1. **Performance Analytics** - "View your historical racing performance"
-  2. **Race Recommendations** - "Get personalized race suggestions for this week"
-- Each box includes brief description of what user will see
-- User explicitly chooses their path
-
-**Option B: Direct to Recommendations**
-- Land directly on recommendations (the core feature)
-- Performance Analytics accessible via navigation
-
-**Sticky Header Navigation:**
-- Add persistent header bar at top of application
-- Clear navigation between:
-  - Historical Performance Dashboard
-  - Recommendations Schedule
-- User can easily switch between features at any time
+**Landing Page Decision Needed:**
+- Current: User lands on Performance Dashboard
+- Option A: Landing page with two choices (Performance vs Recommendations)
+- Option B: Land directly on Recommendations (core feature)
+- Need to decide which flow is best for user experience
 
 ### Priority 4: Recommendations Page Complete Rework (Core Feature)
 
