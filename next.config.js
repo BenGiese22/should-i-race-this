@@ -4,6 +4,10 @@ const nextConfig = {
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
   },
+  // Disable experimental dev tools to fix React Client Manifest error
+  experimental: {
+    reactCompiler: false,
+  },
   // Exclude the old project folder from compilation
   webpack: (config) => {
     config.resolve.alias = {
