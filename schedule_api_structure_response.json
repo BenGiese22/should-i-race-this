@@ -1,0 +1,2323 @@
+{
+  "success": true,
+  "message": "API structure analysis complete",
+  "currentSeason": {
+    "year": 2026,
+    "quarter": 1
+  },
+  "apiResponses": {
+    "seasonsEndpoint": {
+      "success": true,
+      "totalSeasons": 141
+    }
+  },
+  "fieldAnalysis": {
+    "licenseFieldsFoundAcrossSeasons": [
+      "license_group"
+    ],
+    "categoryFieldsFoundAcrossSeasons": [],
+    "setupFieldsFoundAcrossSeasons": [
+      "fixed_setup"
+    ]
+  },
+  "recommendations": [
+    "License fields found: license_group",
+    "WARNING: No category fields found. Category extraction will default to sports_car.",
+    "Setup fields found: fixed_setup"
+  ],
+  "sampleSeasons": [
+    {
+      "season_id": 5892,
+      "series_id": 570,
+      "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+      "allAvailableKeys": [
+        "season_id",
+        "season_name",
+        "active",
+        "allowed_season_members",
+        "car_class_ids",
+        "car_switching",
+        "car_types",
+        "caution_laps_do_not_count",
+        "complete",
+        "connection_black_flag",
+        "consec_caution_within_nlaps",
+        "consec_cautions_single_file",
+        "cross_license",
+        "distributed_matchmaking",
+        "driver_change_rule",
+        "driver_changes",
+        "drops",
+        "enable_pitlane_collisions",
+        "fixed_setup",
+        "green_white_checkered_limit",
+        "grid_by_class",
+        "hardcore_level",
+        "has_supersessions",
+        "ignore_license_for_practice",
+        "incident_limit",
+        "incident_warn_mode",
+        "incident_warn_param1",
+        "incident_warn_param2",
+        "is_heat_racing",
+        "license_group",
+        "license_group_types",
+        "lucky_dog",
+        "max_team_drivers",
+        "max_weeks",
+        "min_team_drivers",
+        "multiclass",
+        "must_use_diff_tire_types_in_race",
+        "next_race_session",
+        "num_fast_tows",
+        "num_opt_laps",
+        "official",
+        "op_duration",
+        "open_practice_session_type_id",
+        "qualifier_must_start_race",
+        "race_week",
+        "race_week_to_make_divisions",
+        "reg_user_count",
+        "region_competition",
+        "restrict_by_member",
+        "restrict_to_car",
+        "restrict_viewing",
+        "schedule_description",
+        "schedules",
+        "score_as_carclassid",
+        "season_quarter",
+        "season_short_name",
+        "season_year",
+        "send_to_open_practice",
+        "series_id",
+        "short_parade_lap",
+        "start_date",
+        "start_on_qual_tire",
+        "start_zone",
+        "track_types",
+        "unsport_conduct_rule_mode"
+      ],
+      "licenseFields": {
+        "license_group": 5
+      },
+      "categoryFields": {
+
+      },
+      "setupFields": {
+        "fixed_setup": false
+      },
+      "licenseFieldsFound": [
+        "license_group"
+      ],
+      "categoryFieldsFound": [],
+      "setupFieldsFound": [
+        "fixed_setup"
+      ],
+      "sampleScheduleEntry": {
+        "allAvailableKeys": [
+          "season_id",
+          "race_week_num",
+          "car_restrictions",
+          "category",
+          "category_id",
+          "enable_pitlane_collisions",
+          "full_course_cautions",
+          "practice_length",
+          "qual_attached",
+          "qualify_laps",
+          "qualify_length",
+          "race_lap_limit",
+          "race_time_descriptors",
+          "race_time_limit",
+          "race_week_car_class_ids",
+          "race_week_cars",
+          "restart_type",
+          "schedule_name",
+          "season_name",
+          "series_id",
+          "series_name",
+          "short_parade_lap",
+          "special_event_type",
+          "start_date",
+          "start_type",
+          "start_zone",
+          "track",
+          "track_state",
+          "warmup_length",
+          "weather",
+          "week_end_time"
+        ],
+        "licenseFields": {
+
+        },
+        "categoryFields": {
+          "category": "dirt_oval",
+          "category_id": 3
+        },
+        "setupFields": {
+
+        },
+        "track": {
+          "category": "dirt_oval",
+          "category_id": 3,
+          "track_id": 279,
+          "track_name": "Volusia Speedway Park"
+        },
+        "race_week_num": 0,
+        "rawSample": {
+          "season_id": 5892,
+          "race_week_num": 0,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 30,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 29,
+              "session_times": [
+                "2025-11-12T01:00:00Z",
+                "2025-11-13T01:00:00Z",
+                "2025-11-14T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [93],
+          "race_week_cars": [
+            {
+              "car_id": 86,
+              "car_name": "Dirt Sprint Car - 410",
+              "car_name_abbreviated": "DSC410"
+            }
+          ],
+          "restart_type": "Single-file Maintain",
+          "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-11-12",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 279,
+            "track_name": "Volusia Speedway Park"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 1238273854420927,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 61,
+            "simulated_start_time": "2025-11-15T12:30:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 405],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 75,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 1,
+              "skies_low": 0,
+              "temp_high": 24.9,
+              "temp_low": 22.1,
+              "temp_units": 1,
+              "wind_dir": 7,
+              "wind_high": 17.6,
+              "wind_low": 10.7,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=813bb0a84fe185b764db84b437fa31fc9f803e2d6f62d9b19a1c2b433720f3dd",
+            "wind_dir": 0,
+            "wind_units": 0,
+            "wind_value": 8
+          },
+          "week_end_time": "2025-11-14T01:00:00Z"
+        }
+      }
+    },
+    {
+      "season_id": 5893,
+      "series_id": 139,
+      "season_name": "Global Mazda MX-5 Cup by Fanatec - 2026 Season 1",
+      "allAvailableKeys": [
+        "season_id",
+        "season_name",
+        "active",
+        "allowed_season_members",
+        "car_class_ids",
+        "car_switching",
+        "car_types",
+        "caution_laps_do_not_count",
+        "complete",
+        "connection_black_flag",
+        "consec_caution_within_nlaps",
+        "consec_cautions_single_file",
+        "cross_license",
+        "distributed_matchmaking",
+        "driver_change_rule",
+        "driver_changes",
+        "drops",
+        "enable_pitlane_collisions",
+        "fixed_setup",
+        "green_white_checkered_limit",
+        "grid_by_class",
+        "hardcore_level",
+        "has_supersessions",
+        "ignore_license_for_practice",
+        "incident_limit",
+        "incident_warn_mode",
+        "incident_warn_param1",
+        "incident_warn_param2",
+        "is_heat_racing",
+        "license_group",
+        "license_group_types",
+        "lucky_dog",
+        "max_team_drivers",
+        "max_weeks",
+        "min_team_drivers",
+        "multiclass",
+        "must_use_diff_tire_types_in_race",
+        "next_race_session",
+        "num_fast_tows",
+        "num_opt_laps",
+        "official",
+        "op_duration",
+        "open_practice_session_type_id",
+        "qualifier_must_start_race",
+        "race_week",
+        "race_week_to_make_divisions",
+        "reg_user_count",
+        "region_competition",
+        "restrict_by_member",
+        "restrict_to_car",
+        "restrict_viewing",
+        "rookie_season",
+        "schedule_description",
+        "schedules",
+        "season_quarter",
+        "season_short_name",
+        "season_year",
+        "send_to_open_practice",
+        "series_id",
+        "short_parade_lap",
+        "start_date",
+        "start_on_qual_tire",
+        "start_zone",
+        "track_types",
+        "unsport_conduct_rule_mode"
+      ],
+      "licenseFields": {
+        "license_group": 1
+      },
+      "categoryFields": {
+
+      },
+      "setupFields": {
+        "fixed_setup": true
+      },
+      "licenseFieldsFound": [
+        "license_group"
+      ],
+      "categoryFieldsFound": [],
+      "setupFieldsFound": [
+        "fixed_setup"
+      ],
+      "sampleScheduleEntry": {
+        "allAvailableKeys": [
+          "season_id",
+          "race_week_num",
+          "car_restrictions",
+          "category",
+          "category_id",
+          "enable_pitlane_collisions",
+          "full_course_cautions",
+          "practice_length",
+          "qual_attached",
+          "qualify_laps",
+          "qualify_length",
+          "race_lap_limit",
+          "race_time_descriptors",
+          "race_time_limit",
+          "race_week_car_class_ids",
+          "race_week_cars",
+          "restart_type",
+          "schedule_name",
+          "season_name",
+          "series_id",
+          "series_name",
+          "short_parade_lap",
+          "special_event_type",
+          "start_date",
+          "start_type",
+          "start_zone",
+          "track",
+          "track_state",
+          "warmup_length",
+          "weather",
+          "week_end_time"
+        ],
+        "licenseFields": {
+
+        },
+        "categoryFields": {
+          "category": "sports_car",
+          "category_id": 5
+        },
+        "setupFields": {
+
+        },
+        "track": {
+          "category": "road",
+          "category_id": 2,
+          "config_name": "North Course",
+          "track_id": 467,
+          "track_name": "Virginia International Raceway"
+        },
+        "race_week_num": 0,
+        "rawSample": {
+          "season_id": 5893,
+          "race_week_num": 0,
+          "car_restrictions": [
+            {
+              "car_id": 67,
+              "max_dry_tire_sets": 0,
+              "max_pct_fuel_fill": 100,
+              "power_adjust_pct": 0,
+              "race_setup_id": 237400,
+              "weight_penalty_kg": 0
+            }
+          ],
+          "category": "sports_car",
+          "category_id": 5,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": false,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 8,
+          "race_lap_limit": null,
+          "race_time_descriptors": [
+            {
+              "day_offset": [0, 1, 2, 3, 4, 5, 6],
+              "first_session_time": "00:00:00",
+              "repeat_minutes": 30,
+              "repeating": true,
+              "session_minutes": 26,
+              "start_date": "2025-12-16",
+              "super_session": false
+            }
+          ],
+          "race_time_limit": 12,
+          "race_week_car_class_ids": [],
+          "race_week_cars": [],
+          "restart_type": "Double-file Back",
+          "schedule_name": "Formula Vee - races every 30min at :00 & 30 - standing start",
+          "season_name": "Global Mazda MX-5 Cup by Fanatec - 2026 Season 1",
+          "series_id": 139,
+          "series_name": "Global Mazda MX-5 Cup by Fanatec",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-12-16",
+          "start_type": "Standing",
+          "start_zone": false,
+          "track": {
+            "category": "road",
+            "category_id": 2,
+            "config_name": "North Course",
+            "track_id": 467,
+            "track_name": "Virginia International Raceway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": -4020179919247667,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 98,
+            "simulated_start_time": "2026-02-15T12:00:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [15, 35],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 72,
+            "time_of_day": 9,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 0,
+              "skies_low": 0,
+              "temp_high": 19.6,
+              "temp_low": 19.5,
+              "temp_units": 1,
+              "wind_dir": 7,
+              "wind_high": 12.7,
+              "wind_low": 12.6,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5893/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040551Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=45097f1287678f643e081e2a081262071b9db7d46391f5dd4149ae1afba99224",
+            "wind_dir": 6,
+            "wind_units": 0,
+            "wind_value": 11
+          },
+          "week_end_time": "2025-12-22T23:58:00Z"
+        }
+      }
+    },
+    {
+      "season_id": 5894,
+      "series_id": 571,
+      "season_name": "BMW M2 Cup by Nitro Concepts - 2026 Season 1",
+      "allAvailableKeys": [
+        "season_id",
+        "season_name",
+        "active",
+        "allowed_season_members",
+        "car_class_ids",
+        "car_switching",
+        "car_types",
+        "caution_laps_do_not_count",
+        "complete",
+        "connection_black_flag",
+        "consec_caution_within_nlaps",
+        "consec_cautions_single_file",
+        "cross_license",
+        "distributed_matchmaking",
+        "driver_change_rule",
+        "driver_changes",
+        "drops",
+        "enable_pitlane_collisions",
+        "fixed_setup",
+        "green_white_checkered_limit",
+        "grid_by_class",
+        "hardcore_level",
+        "has_supersessions",
+        "ignore_license_for_practice",
+        "incident_limit",
+        "incident_warn_mode",
+        "incident_warn_param1",
+        "incident_warn_param2",
+        "is_heat_racing",
+        "license_group",
+        "license_group_types",
+        "lucky_dog",
+        "max_team_drivers",
+        "max_weeks",
+        "min_team_drivers",
+        "multiclass",
+        "must_use_diff_tire_types_in_race",
+        "next_race_session",
+        "num_fast_tows",
+        "num_opt_laps",
+        "official",
+        "op_duration",
+        "open_practice_session_type_id",
+        "qualifier_must_start_race",
+        "race_week",
+        "race_week_to_make_divisions",
+        "reg_user_count",
+        "region_competition",
+        "restrict_by_member",
+        "restrict_to_car",
+        "restrict_viewing",
+        "rookie_season",
+        "schedule_description",
+        "schedules",
+        "season_quarter",
+        "season_short_name",
+        "season_year",
+        "send_to_open_practice",
+        "series_id",
+        "short_parade_lap",
+        "start_date",
+        "start_on_qual_tire",
+        "start_zone",
+        "track_types",
+        "unsport_conduct_rule_mode"
+      ],
+      "licenseFields": {
+        "license_group": 1
+      },
+      "categoryFields": {
+
+      },
+      "setupFields": {
+        "fixed_setup": true
+      },
+      "licenseFieldsFound": [
+        "license_group"
+      ],
+      "categoryFieldsFound": [],
+      "setupFieldsFound": [
+        "fixed_setup"
+      ],
+      "sampleScheduleEntry": {
+        "allAvailableKeys": [
+          "season_id",
+          "race_week_num",
+          "car_restrictions",
+          "category",
+          "category_id",
+          "enable_pitlane_collisions",
+          "full_course_cautions",
+          "practice_length",
+          "qual_attached",
+          "qualify_laps",
+          "qualify_length",
+          "race_lap_limit",
+          "race_time_descriptors",
+          "race_time_limit",
+          "race_week_car_class_ids",
+          "race_week_cars",
+          "restart_type",
+          "schedule_name",
+          "season_name",
+          "series_id",
+          "series_name",
+          "short_parade_lap",
+          "special_event_type",
+          "start_date",
+          "start_type",
+          "start_zone",
+          "track",
+          "track_state",
+          "warmup_length",
+          "weather",
+          "week_end_time"
+        ],
+        "licenseFields": {
+
+        },
+        "categoryFields": {
+          "category": "sports_car",
+          "category_id": 5
+        },
+        "setupFields": {
+
+        },
+        "track": {
+          "category": "road",
+          "category_id": 2,
+          "config_name": "North Course",
+          "track_id": 467,
+          "track_name": "Virginia International Raceway"
+        },
+        "race_week_num": 0,
+        "rawSample": {
+          "season_id": 5894,
+          "race_week_num": 0,
+          "car_restrictions": [
+            {
+              "car_id": 195,
+              "max_dry_tire_sets": 0,
+              "max_pct_fuel_fill": 100,
+              "power_adjust_pct": 0,
+              "race_setup_id": 263892,
+              "weight_penalty_kg": 0
+            }
+          ],
+          "category": "sports_car",
+          "category_id": 5,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": false,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 8,
+          "race_lap_limit": null,
+          "race_time_descriptors": [
+            {
+              "day_offset": [0, 1, 2, 3, 4, 5, 6],
+              "first_session_time": "00:15:00",
+              "repeat_minutes": 30,
+              "repeating": true,
+              "session_minutes": 26,
+              "start_date": "2025-12-16",
+              "super_session": false
+            }
+          ],
+          "race_time_limit": 12,
+          "race_week_car_class_ids": [],
+          "race_week_cars": [],
+          "restart_type": "Double-file Back",
+          "schedule_name": "FF1600 - races every 30 mins at :15 & :45 - standing start",
+          "season_name": "BMW M2 Cup by Nitro Concepts - 2026 Season 1",
+          "series_id": 571,
+          "series_name": "BMW M2 Cup by Nitro Concepts",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-12-16",
+          "start_type": "Standing",
+          "start_zone": false,
+          "track": {
+            "category": "road",
+            "category_id": 2,
+            "config_name": "North Course",
+            "track_id": 467,
+            "track_name": "Virginia International Raceway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 4461819853392808,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 69,
+            "simulated_start_time": "2026-02-15T12:00:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [15, 35],
+            "skies": 0,
+            "temp_units": 0,
+            "temp_value": 75,
+            "time_of_day": 9,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 0,
+              "skies_low": 0,
+              "temp_high": 18.9,
+              "temp_low": 18.9,
+              "temp_units": 1,
+              "wind_dir": 4,
+              "wind_high": 16.5,
+              "wind_low": 16.2,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5894/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040534Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=5b3b64db0fb5443e9d9ce8b14234b47f3fa5c12520b67b4f68d34cfef8559bfe",
+            "wind_dir": 0,
+            "wind_units": 0,
+            "wind_value": 9
+          },
+          "week_end_time": "2025-12-22T23:58:00Z"
+        }
+      }
+    },
+    {
+      "season_id": 5895,
+      "series_id": 514,
+      "season_name": "Toyota GR86 Cup by SIMAGIC - 2026 Season 1",
+      "allAvailableKeys": [
+        "season_id",
+        "season_name",
+        "active",
+        "allowed_season_members",
+        "car_class_ids",
+        "car_switching",
+        "car_types",
+        "caution_laps_do_not_count",
+        "complete",
+        "connection_black_flag",
+        "consec_caution_within_nlaps",
+        "consec_cautions_single_file",
+        "cross_license",
+        "distributed_matchmaking",
+        "driver_change_rule",
+        "driver_changes",
+        "drops",
+        "enable_pitlane_collisions",
+        "fixed_setup",
+        "green_white_checkered_limit",
+        "grid_by_class",
+        "hardcore_level",
+        "has_supersessions",
+        "ignore_license_for_practice",
+        "incident_limit",
+        "incident_warn_mode",
+        "incident_warn_param1",
+        "incident_warn_param2",
+        "is_heat_racing",
+        "license_group",
+        "license_group_types",
+        "lucky_dog",
+        "max_team_drivers",
+        "max_weeks",
+        "min_team_drivers",
+        "multiclass",
+        "must_use_diff_tire_types_in_race",
+        "next_race_session",
+        "num_fast_tows",
+        "num_opt_laps",
+        "official",
+        "op_duration",
+        "open_practice_session_type_id",
+        "qualifier_must_start_race",
+        "race_week",
+        "race_week_to_make_divisions",
+        "reg_user_count",
+        "region_competition",
+        "restrict_by_member",
+        "restrict_to_car",
+        "restrict_viewing",
+        "schedule_description",
+        "schedules",
+        "season_quarter",
+        "season_short_name",
+        "season_year",
+        "send_to_open_practice",
+        "series_id",
+        "short_parade_lap",
+        "start_date",
+        "start_on_qual_tire",
+        "start_zone",
+        "track_types",
+        "unsport_conduct_rule_mode"
+      ],
+      "licenseFields": {
+        "license_group": 2
+      },
+      "categoryFields": {
+
+      },
+      "setupFields": {
+        "fixed_setup": true
+      },
+      "licenseFieldsFound": [
+        "license_group"
+      ],
+      "categoryFieldsFound": [],
+      "setupFieldsFound": [
+        "fixed_setup"
+      ],
+      "sampleScheduleEntry": {
+        "allAvailableKeys": [
+          "season_id",
+          "race_week_num",
+          "car_restrictions",
+          "category",
+          "category_id",
+          "enable_pitlane_collisions",
+          "full_course_cautions",
+          "practice_length",
+          "qual_attached",
+          "qualify_laps",
+          "qualify_length",
+          "race_lap_limit",
+          "race_time_descriptors",
+          "race_time_limit",
+          "race_week_car_class_ids",
+          "race_week_cars",
+          "restart_type",
+          "schedule_name",
+          "season_name",
+          "series_id",
+          "series_name",
+          "short_parade_lap",
+          "special_event_type",
+          "start_date",
+          "start_type",
+          "start_zone",
+          "track",
+          "track_state",
+          "warmup_length",
+          "weather",
+          "week_end_time"
+        ],
+        "licenseFields": {
+
+        },
+        "categoryFields": {
+          "category": "sports_car",
+          "category_id": 5
+        },
+        "setupFields": {
+
+        },
+        "track": {
+          "category": "road",
+          "category_id": 2,
+          "config_name": "Full Course",
+          "track_id": 465,
+          "track_name": "Virginia International Raceway"
+        },
+        "race_week_num": 0,
+        "rawSample": {
+          "season_id": 5895,
+          "race_week_num": 0,
+          "car_restrictions": [
+            {
+              "car_id": 160,
+              "max_dry_tire_sets": 0,
+              "max_pct_fuel_fill": 100,
+              "power_adjust_pct": 0,
+              "race_setup_id": 277333,
+              "weight_penalty_kg": 0
+            }
+          ],
+          "category": "sports_car",
+          "category_id": 5,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": false,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 8,
+          "race_lap_limit": null,
+          "race_time_descriptors": [
+            {
+              "day_offset": [0, 1, 2, 3, 4, 5, 6],
+              "first_session_time": "00:15:00",
+              "repeat_minutes": 30,
+              "repeating": true,
+              "session_minutes": 29,
+              "start_date": "2025-12-16",
+              "super_session": false
+            }
+          ],
+          "race_time_limit": 15,
+          "race_week_car_class_ids": [],
+          "race_week_cars": [],
+          "restart_type": "Double-file Back",
+          "schedule_name": "GR Cup - every 30 minuts at :15 past and :45 past",
+          "season_name": "Toyota GR86 Cup by SIMAGIC - 2026 Season 1",
+          "series_id": 514,
+          "series_name": "Toyota GR86 Cup by SIMAGIC",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-12-16",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "road",
+            "category_id": 2,
+            "config_name": "Full Course",
+            "track_id": 465,
+            "track_name": "Virginia International Raceway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 3417939243255496,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 55,
+            "simulated_start_time": "2026-02-15T13:05:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [15, 35],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 66,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 0,
+              "skies_low": 0,
+              "temp_high": 18.7,
+              "temp_low": 18.7,
+              "temp_units": 1,
+              "wind_dir": 7,
+              "wind_high": 20.9,
+              "wind_low": 20.4,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5895/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040231Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=baa756d6bf8a708b11742773ffcba0471e30db471c2bf38adbaed927bffe83bc",
+            "wind_dir": 7,
+            "wind_units": 0,
+            "wind_value": 12
+          },
+          "week_end_time": "2025-12-22T23:58:00Z"
+        }
+      }
+    },
+    {
+      "season_id": 5896,
+      "series_id": 562,
+      "season_name": "Legends Road Cup by Go Motorsports Shop - 2026 Season 1",
+      "allAvailableKeys": [
+        "season_id",
+        "season_name",
+        "active",
+        "allowed_season_members",
+        "car_class_ids",
+        "car_switching",
+        "car_types",
+        "caution_laps_do_not_count",
+        "complete",
+        "connection_black_flag",
+        "consec_caution_within_nlaps",
+        "consec_cautions_single_file",
+        "cross_license",
+        "distributed_matchmaking",
+        "driver_change_rule",
+        "driver_changes",
+        "drops",
+        "enable_pitlane_collisions",
+        "fixed_setup",
+        "green_white_checkered_limit",
+        "grid_by_class",
+        "hardcore_level",
+        "has_supersessions",
+        "ignore_license_for_practice",
+        "incident_limit",
+        "incident_warn_mode",
+        "incident_warn_param1",
+        "incident_warn_param2",
+        "is_heat_racing",
+        "license_group",
+        "license_group_types",
+        "lucky_dog",
+        "max_team_drivers",
+        "max_weeks",
+        "min_team_drivers",
+        "multiclass",
+        "must_use_diff_tire_types_in_race",
+        "next_race_session",
+        "num_fast_tows",
+        "num_opt_laps",
+        "official",
+        "op_duration",
+        "open_practice_session_type_id",
+        "qualifier_must_start_race",
+        "race_week",
+        "race_week_to_make_divisions",
+        "reg_user_count",
+        "region_competition",
+        "restrict_by_member",
+        "restrict_to_car",
+        "restrict_viewing",
+        "schedule_description",
+        "schedules",
+        "season_quarter",
+        "season_short_name",
+        "season_year",
+        "send_to_open_practice",
+        "series_id",
+        "short_parade_lap",
+        "start_date",
+        "start_on_qual_tire",
+        "start_zone",
+        "track_types",
+        "unsport_conduct_rule_mode"
+      ],
+      "licenseFields": {
+        "license_group": 2
+      },
+      "categoryFields": {
+
+      },
+      "setupFields": {
+        "fixed_setup": true
+      },
+      "licenseFieldsFound": [
+        "license_group"
+      ],
+      "categoryFieldsFound": [],
+      "setupFieldsFound": [
+        "fixed_setup"
+      ],
+      "sampleScheduleEntry": {
+        "allAvailableKeys": [
+          "season_id",
+          "race_week_num",
+          "car_restrictions",
+          "category",
+          "category_id",
+          "enable_pitlane_collisions",
+          "full_course_cautions",
+          "practice_length",
+          "qual_attached",
+          "qualify_laps",
+          "qualify_length",
+          "race_lap_limit",
+          "race_time_descriptors",
+          "race_time_limit",
+          "race_week_car_class_ids",
+          "race_week_cars",
+          "restart_type",
+          "schedule_name",
+          "season_name",
+          "series_id",
+          "series_name",
+          "short_parade_lap",
+          "special_event_type",
+          "start_date",
+          "start_type",
+          "start_zone",
+          "track",
+          "track_state",
+          "warmup_length",
+          "weather",
+          "week_end_time"
+        ],
+        "licenseFields": {
+
+        },
+        "categoryFields": {
+          "category": "sports_car",
+          "category_id": 5
+        },
+        "setupFields": {
+
+        },
+        "track": {
+          "category": "road",
+          "category_id": 2,
+          "config_name": "Jefferson Reverse",
+          "track_id": 142,
+          "track_name": "Summit Point Raceway"
+        },
+        "race_week_num": 0,
+        "rawSample": {
+          "season_id": 5896,
+          "race_week_num": 0,
+          "car_restrictions": [
+            {
+              "car_id": 5,
+              "max_dry_tire_sets": 0,
+              "max_pct_fuel_fill": 100,
+              "power_adjust_pct": 0,
+              "race_setup_id": 277013,
+              "weight_penalty_kg": 0
+            }
+          ],
+          "category": "sports_car",
+          "category_id": 5,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": false,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 8,
+          "race_lap_limit": null,
+          "race_time_descriptors": [
+            {
+              "day_offset": [0, 1, 2, 3, 4, 5, 6],
+              "first_session_time": "00:30:00",
+              "repeat_minutes": 60,
+              "repeating": true,
+              "session_minutes": 29,
+              "start_date": "2025-12-16",
+              "super_session": false
+            }
+          ],
+          "race_time_limit": 15,
+          "race_week_car_class_ids": [],
+          "race_week_cars": [],
+          "restart_type": "Double-file Back",
+          "schedule_name": "simlab timed - Races 30 past every hour - rolling start",
+          "season_name": "Legends Road Cup by Go Motorsports Shop - 2026 Season 1",
+          "series_id": 562,
+          "series_name": "Legends Road Cup by Go Motorsports Shop",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-12-16",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "road",
+            "category_id": 2,
+            "config_name": "Jefferson Reverse",
+            "track_id": 142,
+            "track_name": "Summit Point Raceway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 1353005460574626,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 97,
+            "simulated_start_time": "2026-03-01T08:40:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [15, 35],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 65,
+            "time_of_day": 1,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 1,
+              "skies_low": 1,
+              "temp_high": 18.4,
+              "temp_low": 18.5,
+              "temp_units": 1,
+              "wind_dir": 4,
+              "wind_high": 20.2,
+              "wind_low": 19,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5896/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=9876e98935054fcb81a79f96f79b483529603033c94b85c5d911dd68e46da33a",
+            "wind_dir": 4,
+            "wind_units": 0,
+            "wind_value": 12
+          },
+          "week_end_time": "2025-12-22T23:58:00Z"
+        }
+      }
+    }
+  ],
+  "fullSeasonSample": {
+    "season_id": 5892,
+    "series_id": 570,
+    "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+    "allFields": {
+      "season_id": 5892,
+      "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+      "active": true,
+      "allowed_season_members": null,
+      "car_class_ids": [91],
+      "car_switching": true,
+      "car_types": [
+        {
+          "car_type": "dirt"
+        },
+        {
+          "car_type": "dirtoval"
+        },
+        {
+          "car_type": "dlm"
+        }
+      ],
+      "caution_laps_do_not_count": false,
+      "complete": false,
+      "connection_black_flag": false,
+      "consec_caution_within_nlaps": 2,
+      "consec_cautions_single_file": false,
+      "cross_license": false,
+      "distributed_matchmaking": false,
+      "driver_change_rule": 0,
+      "driver_changes": false,
+      "drops": 1,
+      "enable_pitlane_collisions": false,
+      "fixed_setup": false,
+      "green_white_checkered_limit": 0,
+      "grid_by_class": false,
+      "hardcore_level": 1,
+      "has_supersessions": false,
+      "ignore_license_for_practice": true,
+      "incident_limit": 12,
+      "incident_warn_mode": 0,
+      "incident_warn_param1": 0,
+      "incident_warn_param2": 0,
+      "is_heat_racing": false,
+      "license_group": 5,
+      "license_group_types": [
+        {
+          "license_group_type": 5
+        }
+      ],
+      "lucky_dog": false,
+      "max_team_drivers": 1,
+      "max_weeks": 8,
+      "min_team_drivers": 1,
+      "multiclass": false,
+      "must_use_diff_tire_types_in_race": false,
+      "next_race_session": null,
+      "num_fast_tows": 0,
+      "num_opt_laps": 0,
+      "official": true,
+      "op_duration": 120,
+      "open_practice_session_type_id": 170,
+      "qualifier_must_start_race": false,
+      "race_week": 7,
+      "race_week_to_make_divisions": 0,
+      "reg_user_count": 0,
+      "region_competition": false,
+      "restrict_by_member": false,
+      "restrict_to_car": false,
+      "restrict_viewing": false,
+      "schedule_description": "Races on Tuesday, Wednesday, and Thursday at 8pm ET",
+      "schedules": [
+        {
+          "season_id": 5892,
+          "race_week_num": 0,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 30,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 29,
+              "session_times": [
+                "2025-11-12T01:00:00Z",
+                "2025-11-13T01:00:00Z",
+                "2025-11-14T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [93],
+          "race_week_cars": [
+            {
+              "car_id": 86,
+              "car_name": "Dirt Sprint Car - 410",
+              "car_name_abbreviated": "DSC410"
+            }
+          ],
+          "restart_type": "Single-file Maintain",
+          "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-11-12",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 279,
+            "track_name": "Volusia Speedway Park"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 1238273854420927,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 61,
+            "simulated_start_time": "2025-11-15T12:30:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 405],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 75,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 1,
+              "skies_low": 0,
+              "temp_high": 24.9,
+              "temp_low": 22.1,
+              "temp_units": 1,
+              "wind_dir": 7,
+              "wind_high": 17.6,
+              "wind_low": 10.7,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=813bb0a84fe185b764db84b437fa31fc9f803e2d6f62d9b19a1c2b433720f3dd",
+            "wind_dir": 0,
+            "wind_units": 0,
+            "wind_value": 8
+          },
+          "week_end_time": "2025-11-14T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 1,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 30,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 25,
+              "session_times": [
+                "2025-11-19T01:00:00Z",
+                "2025-11-20T01:00:00Z",
+                "2025-11-21T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [93],
+          "race_week_cars": [
+            {
+              "car_id": 86,
+              "car_name": "Dirt Sprint Car - 410",
+              "car_name_abbreviated": "DSC410"
+            }
+          ],
+          "restart_type": "Single-file Maintain",
+          "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-11-19",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 531,
+            "track_name": "Huset's Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": -1968932586419048,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 8,
+            "simulated_start_time": "2026-04-01T13:35:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 365],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 71,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 1,
+              "skies_low": 0,
+              "temp_high": 21.8,
+              "temp_low": 21,
+              "temp_units": 1,
+              "wind_dir": 3,
+              "wind_high": 6.8,
+              "wind_low": 3.9,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw1_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=e4a0cc031a18ef271cd0d7c1a3eefa5e6c932d6f7cf54cb4a7712358adda5967",
+            "wind_dir": 6,
+            "wind_units": 0,
+            "wind_value": 4
+          },
+          "week_end_time": "2025-11-21T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 2,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 30,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 33,
+              "session_times": [
+                "2025-11-26T01:00:00Z",
+                "2025-11-27T01:00:00Z",
+                "2025-11-28T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [93],
+          "race_week_cars": [
+            {
+              "car_id": 86,
+              "car_name": "Dirt Sprint Car - 410",
+              "car_name_abbreviated": "DSC410"
+            }
+          ],
+          "restart_type": "Single-file Maintain",
+          "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-11-26",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 274,
+            "track_name": "Williams Grove Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": -1196918358651264,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 45,
+            "simulated_start_time": "2025-11-29T16:45:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 40],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 65,
+            "time_of_day": 8,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 0,
+              "skies_low": 0,
+              "temp_high": 19.5,
+              "temp_low": 19.2,
+              "temp_units": 1,
+              "wind_dir": 4,
+              "wind_high": 4.9,
+              "wind_low": 3.7,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw2_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=a0e1301b48fb284c30477365fd5e10bcf0162360c1d39875b953507afb0fc801",
+            "wind_dir": 6,
+            "wind_units": 0,
+            "wind_value": 11
+          },
+          "week_end_time": "2025-11-28T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 3,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 30,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 28,
+              "session_times": [
+                "2025-12-03T01:00:00Z",
+                "2025-12-04T01:00:00Z",
+                "2025-12-05T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [93],
+          "race_week_cars": [
+            {
+              "car_id": 86,
+              "car_name": "Dirt Sprint Car - 410",
+              "car_name_abbreviated": "DSC410"
+            }
+          ],
+          "restart_type": "Single-file Maintain",
+          "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-12-03",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 462,
+            "track_name": "Lincoln Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 3928847908632711,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 100,
+            "simulated_start_time": "2026-03-01T11:50:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 40],
+            "skies": 2,
+            "temp_units": 0,
+            "temp_value": 65,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 0,
+              "skies_low": 0,
+              "temp_high": 18.5,
+              "temp_low": 18.5,
+              "temp_units": 1,
+              "wind_dir": 6,
+              "wind_high": 19.3,
+              "wind_low": 18.8,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw3_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=3f7bf419e03c27f4479eac4de3065ecab7eae7b4d4e37af10539c8d55bb59d34",
+            "wind_dir": 7,
+            "wind_units": 0,
+            "wind_value": 11
+          },
+          "week_end_time": "2025-12-05T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 4,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 40,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 38,
+              "session_times": [
+                "2025-12-31T01:00:00Z",
+                "2026-01-01T01:00:00Z",
+                "2026-01-02T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [91],
+          "race_week_cars": [
+            {
+              "car_id": 84,
+              "car_name": "Dirt Late Model - Super",
+              "car_name_abbreviated": "DLM438"
+            }
+          ],
+          "restart_type": "Double-file Back",
+          "schedule_name": "WoO LM Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2025-12-31",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "config_name": "Dirt",
+            "track_id": 520,
+            "track_name": "Oswego Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": -1053038063441527,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 51,
+            "simulated_start_time": "2026-04-01T13:20:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 40],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 65,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 1,
+              "skies_low": 0,
+              "temp_high": 20.2,
+              "temp_low": 19.6,
+              "temp_units": 1,
+              "wind_dir": 6,
+              "wind_high": 10,
+              "wind_low": 9.3,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw4_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=fdc19a3447c2580ac7f029e3caa1b407997a866d341191b9bb23e6ad4818de56",
+            "wind_dir": 6,
+            "wind_units": 0,
+            "wind_value": 12
+          },
+          "week_end_time": "2026-01-02T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 5,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 40,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 31,
+              "session_times": [
+                "2026-01-07T01:00:00Z",
+                "2026-01-08T01:00:00Z",
+                "2026-01-09T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [91],
+          "race_week_cars": [
+            {
+              "car_id": 84,
+              "car_name": "Dirt Late Model - Super",
+              "car_name_abbreviated": "DLM438"
+            }
+          ],
+          "restart_type": "Double-file Back",
+          "schedule_name": "WoO LM Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2026-01-07",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 387,
+            "track_name": "Cedar Lake Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": -2086821618701879,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 46,
+            "simulated_start_time": "2026-04-01T13:40:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [25, 40],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 65,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 2,
+              "skies_low": 2,
+              "temp_high": 19.9,
+              "temp_low": 19.8,
+              "temp_units": 1,
+              "wind_dir": 6,
+              "wind_high": 8.5,
+              "wind_low": 8.3,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw5_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=5da89460e424ef11cb2b5ed73def0059c581b185ec4a73ab0bb6c3b84dca6c57",
+            "wind_dir": 6,
+            "wind_units": 0,
+            "wind_value": 11
+          },
+          "week_end_time": "2026-01-09T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 6,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 40,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 35,
+              "session_times": [
+                "2026-01-14T01:00:00Z",
+                "2026-01-15T01:00:00Z",
+                "2026-01-16T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [91],
+          "race_week_cars": [
+            {
+              "car_id": 84,
+              "car_name": "Dirt Late Model - Super",
+              "car_name_abbreviated": "DLM438"
+            }
+          ],
+          "restart_type": "Double-file Back",
+          "schedule_name": "WoO LM Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2026-01-14",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 273,
+            "track_name": "Eldora Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 629257785124730,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 53,
+            "simulated_start_time": "2026-04-01T14:00:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [15, 30],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 66,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 3,
+              "skies_low": 2,
+              "temp_high": 18.6,
+              "temp_low": 18.7,
+              "temp_units": 1,
+              "wind_dir": 7,
+              "wind_high": 25,
+              "wind_low": 24.4,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw6_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=4ddccfab0667e0fe630b435b530aed3f6ab4fb9c7edfa79c2ff92e9871dd1efe",
+            "wind_dir": 6,
+            "wind_units": 0,
+            "wind_value": 11
+          },
+          "week_end_time": "2026-01-16T01:00:00Z"
+        },
+        {
+          "season_id": 5892,
+          "race_week_num": 7,
+          "car_restrictions": [],
+          "category": "dirt_oval",
+          "category_id": 3,
+          "enable_pitlane_collisions": false,
+          "full_course_cautions": true,
+          "practice_length": 3,
+          "qual_attached": true,
+          "qualify_laps": 2,
+          "qualify_length": 5,
+          "race_lap_limit": 40,
+          "race_time_descriptors": [
+            {
+              "repeating": false,
+              "session_minutes": 30,
+              "session_times": [
+                "2026-01-21T01:00:00Z",
+                "2026-01-22T01:00:00Z",
+                "2026-01-23T01:00:00Z"
+              ],
+              "super_session": false
+            }
+          ],
+          "race_time_limit": null,
+          "race_week_car_class_ids": [91],
+          "race_week_cars": [
+            {
+              "car_id": 84,
+              "car_name": "Dirt Late Model - Super",
+              "car_name_abbreviated": "DLM438"
+            }
+          ],
+          "restart_type": "Double-file Back",
+          "schedule_name": "WoO LM Pro Qual - 1 gmt",
+          "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+          "series_id": 570,
+          "series_name": "World of Outlaws Pro Qualifying Series",
+          "short_parade_lap": false,
+          "special_event_type": null,
+          "start_date": "2026-01-21",
+          "start_type": "Rolling",
+          "start_zone": false,
+          "track": {
+            "category": "dirt_oval",
+            "category_id": 3,
+            "track_id": 344,
+            "track_name": "Fairbury Speedway"
+          },
+          "track_state": {
+            "leave_marbles": false
+          },
+          "warmup_length": 0,
+          "weather": {
+            "allow_fog": false,
+            "forecast_options": {
+              "allow_fog": false,
+              "forecast_type": 1,
+              "precipitation": 1,
+              "skies": 0,
+              "stop_precip": 0,
+              "temperature": 0,
+              "weather_seed": 2855609791796689,
+              "wind_dir": 0,
+              "wind_speed": 0
+            },
+            "precip_option": 0,
+            "rel_humidity": 48,
+            "simulated_start_time": "2026-05-01T14:20:00",
+            "simulated_time_multiplier": 1,
+            "simulated_time_offsets": [15, 30],
+            "skies": 1,
+            "temp_units": 0,
+            "temp_value": 71,
+            "time_of_day": 0,
+            "track_water": 0,
+            "version": 1,
+            "weather_summary": {
+              "max_precip_rate": 0,
+              "max_precip_rate_desc": "None",
+              "precip_chance": 0,
+              "skies_high": 1,
+              "skies_low": 0,
+              "temp_high": 20.3,
+              "temp_low": 20.3,
+              "temp_units": 1,
+              "wind_dir": 6,
+              "wind_high": 30.2,
+              "wind_low": 27.5,
+              "wind_units": 1
+            },
+            "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw7_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=8eaa3ad3b515e8618d3e2624b3c0e56a1d61f6c86384f3217532c84761c9a679",
+            "wind_dir": 5,
+            "wind_units": 0,
+            "wind_value": 12
+          },
+          "week_end_time": "2026-01-23T01:00:00Z"
+        }
+      ],
+      "score_as_carclassid": 4075,
+      "season_quarter": 4,
+      "season_short_name": "2025 World of Outlaws Pro Qualifying Series",
+      "season_year": 2025,
+      "send_to_open_practice": true,
+      "series_id": 570,
+      "short_parade_lap": false,
+      "start_date": "2025-11-11T00:00:00Z",
+      "start_on_qual_tire": false,
+      "start_zone": false,
+      "track_types": [
+        {
+          "track_type": "dirt_oval"
+        }
+      ],
+      "unsport_conduct_rule_mode": 0
+    },
+    "schedules": [
+      {
+        "season_id": 5892,
+        "race_week_num": 0,
+        "car_restrictions": [],
+        "category": "dirt_oval",
+        "category_id": 3,
+        "enable_pitlane_collisions": false,
+        "full_course_cautions": true,
+        "practice_length": 3,
+        "qual_attached": true,
+        "qualify_laps": 2,
+        "qualify_length": 5,
+        "race_lap_limit": 30,
+        "race_time_descriptors": [
+          {
+            "repeating": false,
+            "session_minutes": 29,
+            "session_times": [
+              "2025-11-12T01:00:00Z",
+              "2025-11-13T01:00:00Z",
+              "2025-11-14T01:00:00Z"
+            ],
+            "super_session": false
+          }
+        ],
+        "race_time_limit": null,
+        "race_week_car_class_ids": [93],
+        "race_week_cars": [
+          {
+            "car_id": 86,
+            "car_name": "Dirt Sprint Car - 410",
+            "car_name_abbreviated": "DSC410"
+          }
+        ],
+        "restart_type": "Single-file Maintain",
+        "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+        "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+        "series_id": 570,
+        "series_name": "World of Outlaws Pro Qualifying Series",
+        "short_parade_lap": false,
+        "special_event_type": null,
+        "start_date": "2025-11-12",
+        "start_type": "Rolling",
+        "start_zone": false,
+        "track": {
+          "category": "dirt_oval",
+          "category_id": 3,
+          "track_id": 279,
+          "track_name": "Volusia Speedway Park"
+        },
+        "track_state": {
+          "leave_marbles": false
+        },
+        "warmup_length": 0,
+        "weather": {
+          "allow_fog": false,
+          "forecast_options": {
+            "allow_fog": false,
+            "forecast_type": 1,
+            "precipitation": 1,
+            "skies": 0,
+            "stop_precip": 0,
+            "temperature": 0,
+            "weather_seed": 1238273854420927,
+            "wind_dir": 0,
+            "wind_speed": 0
+          },
+          "precip_option": 0,
+          "rel_humidity": 61,
+          "simulated_start_time": "2025-11-15T12:30:00",
+          "simulated_time_multiplier": 1,
+          "simulated_time_offsets": [25, 405],
+          "skies": 1,
+          "temp_units": 0,
+          "temp_value": 75,
+          "time_of_day": 0,
+          "track_water": 0,
+          "version": 1,
+          "weather_summary": {
+            "max_precip_rate": 0,
+            "max_precip_rate_desc": "None",
+            "precip_chance": 0,
+            "skies_high": 1,
+            "skies_low": 0,
+            "temp_high": 24.9,
+            "temp_low": 22.1,
+            "temp_units": 1,
+            "wind_dir": 7,
+            "wind_high": 17.6,
+            "wind_low": 10.7,
+            "wind_units": 1
+          },
+          "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw0_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=813bb0a84fe185b764db84b437fa31fc9f803e2d6f62d9b19a1c2b433720f3dd",
+          "wind_dir": 0,
+          "wind_units": 0,
+          "wind_value": 8
+        },
+        "week_end_time": "2025-11-14T01:00:00Z"
+      },
+      {
+        "season_id": 5892,
+        "race_week_num": 1,
+        "car_restrictions": [],
+        "category": "dirt_oval",
+        "category_id": 3,
+        "enable_pitlane_collisions": false,
+        "full_course_cautions": true,
+        "practice_length": 3,
+        "qual_attached": true,
+        "qualify_laps": 2,
+        "qualify_length": 5,
+        "race_lap_limit": 30,
+        "race_time_descriptors": [
+          {
+            "repeating": false,
+            "session_minutes": 25,
+            "session_times": [
+              "2025-11-19T01:00:00Z",
+              "2025-11-20T01:00:00Z",
+              "2025-11-21T01:00:00Z"
+            ],
+            "super_session": false
+          }
+        ],
+        "race_time_limit": null,
+        "race_week_car_class_ids": [93],
+        "race_week_cars": [
+          {
+            "car_id": 86,
+            "car_name": "Dirt Sprint Car - 410",
+            "car_name_abbreviated": "DSC410"
+          }
+        ],
+        "restart_type": "Single-file Maintain",
+        "schedule_name": "WoO Sprint Pro Qual - 1 gmt",
+        "season_name": "World of Outlaws Pro Qualifying Series - 2025 Season",
+        "series_id": 570,
+        "series_name": "World of Outlaws Pro Qualifying Series",
+        "short_parade_lap": false,
+        "special_event_type": null,
+        "start_date": "2025-11-19",
+        "start_type": "Rolling",
+        "start_zone": false,
+        "track": {
+          "category": "dirt_oval",
+          "category_id": 3,
+          "track_id": 531,
+          "track_name": "Huset's Speedway"
+        },
+        "track_state": {
+          "leave_marbles": false
+        },
+        "warmup_length": 0,
+        "weather": {
+          "allow_fog": false,
+          "forecast_options": {
+            "allow_fog": false,
+            "forecast_type": 1,
+            "precipitation": 1,
+            "skies": 0,
+            "stop_precip": 0,
+            "temperature": 0,
+            "weather_seed": -1968932586419048,
+            "wind_dir": 0,
+            "wind_speed": 0
+          },
+          "precip_option": 0,
+          "rel_humidity": 8,
+          "simulated_start_time": "2026-04-01T13:35:00",
+          "simulated_time_multiplier": 1,
+          "simulated_time_offsets": [25, 365],
+          "skies": 1,
+          "temp_units": 0,
+          "temp_value": 71,
+          "time_of_day": 0,
+          "track_water": 0,
+          "version": 1,
+          "weather_summary": {
+            "max_precip_rate": 0,
+            "max_precip_rate_desc": "None",
+            "precip_chance": 0,
+            "skies_high": 1,
+            "skies_low": 0,
+            "temp_high": 21.8,
+            "temp_low": 21,
+            "temp_units": 1,
+            "wind_dir": 3,
+            "wind_high": 6.8,
+            "wind_low": 3.9,
+            "wind_units": 1
+          },
+          "weather_url": "https://scorpio-assets.s3.amazonaws.com/members/messaging-services/non_expiring/weather-forecast/season/5892/rw1_evt5_display.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260121T040335Z&X-Amz-SignedHeaders=host&X-Amz-Credential=AKIAUO6OO4A3WX3RTXUZ%2F20260121%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=e4a0cc031a18ef271cd0d7c1a3eefa5e6c932d6f7cf54cb4a7712358adda5967",
+          "wind_dir": 6,
+          "wind_units": 0,
+          "wind_value": 4
+        },
+        "week_end_time": "2025-11-21T01:00:00Z"
+      }
+    ]
+  }
+}

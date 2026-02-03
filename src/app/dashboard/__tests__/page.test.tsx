@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import Dashboard from '../page';
 import { useAuth } from '../../../lib/auth/hooks';
+import { FeatureFlagsProvider } from '../../../lib/feature-flags/context';
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -41,6 +42,15 @@ const mockUser = {
   ],
   createdAt: '2024-01-01T00:00:00Z',
   lastSyncAt: '2024-01-01T00:00:00Z',
+};
+
+// Helper to render with FeatureFlagsProvider
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <FeatureFlagsProvider>
+      {component}
+    </FeatureFlagsProvider>
+  );
 };
 
 const mockAnalyticsData = [
@@ -121,7 +131,7 @@ describe('Dashboard Page', () => {
         loading: false,
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
@@ -132,7 +142,7 @@ describe('Dashboard Page', () => {
         loading: true,
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
@@ -140,14 +150,14 @@ describe('Dashboard Page', () => {
 
   describe('Dashboard Interface', () => {
     it('should display page header and description', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       expect(screen.getByText('Performance Analytics')).toBeInTheDocument();
       expect(screen.getByText(/Analyze your racing performance/)).toBeInTheDocument();
     });
 
     it('should display control panel with filters', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       expect(screen.getByText('Group By')).toBeInTheDocument();
       expect(screen.getByText('Search')).toBeInTheDocument();
@@ -161,7 +171,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should have group by dropdown', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Wait for loading to finish
       await waitFor(() => {
@@ -181,7 +191,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should have search input with placeholder', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       const searchInput = screen.getByPlaceholderText('Search series or tracks...');
       expect(searchInput).toBeInTheDocument();
@@ -190,7 +200,7 @@ describe('Dashboard Page', () => {
 
   describe('Analytics Table', () => {
     it('should display analytics data in table format', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
@@ -199,7 +209,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should display correct column headers for series view', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
@@ -217,7 +227,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should format position delta with colors', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         // Positive delta (improvement) should be green
@@ -231,7 +241,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should format incident counts with colors', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         // Low incidents (1-2 range) should be teal
@@ -247,7 +257,7 @@ describe('Dashboard Page', () => {
 
   describe('Sorting Functionality', () => {
     it('should sort by race count when header is clicked', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         const racesHeader = screen.getByText('Races');
@@ -259,7 +269,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should display sort icons', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         // Should have sort icons in headers
@@ -271,7 +281,7 @@ describe('Dashboard Page', () => {
 
   describe('Search and Filter Functionality', () => {
     it('should filter results when search term is entered', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         const searchInput = screen.getByPlaceholderText('Search series or tracks...');
@@ -282,7 +292,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should change group by when dropdown is changed', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Wait for loading to finish
       await waitFor(() => {
@@ -306,7 +316,7 @@ describe('Dashboard Page', () => {
     it('should display loading state when fetching analytics', async () => {
       (fetch as jest.Mock).mockImplementation(() => new Promise(() => {})); // Never resolves
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       expect(screen.getByText('Loading analytics...')).toBeInTheDocument();
     });
@@ -314,7 +324,7 @@ describe('Dashboard Page', () => {
     it('should display error message when API call fails', async () => {
       (fetch as jest.Mock).mockRejectedValue(new Error('API Error'));
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('API Error')).toBeInTheDocument();
@@ -327,7 +337,7 @@ describe('Dashboard Page', () => {
         json: async () => ({ analytics: [] }),
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('No Data Available')).toBeInTheDocument();
@@ -336,7 +346,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should display no results message when search has no matches', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         const searchInput = screen.getByPlaceholderText('Search series or tracks...');
@@ -352,7 +362,7 @@ describe('Dashboard Page', () => {
 
   describe('Sync Functionality', () => {
     it('should sync data when sync button is clicked', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Wait for initial load to complete
       await waitFor(() => {
@@ -373,7 +383,7 @@ describe('Dashboard Page', () => {
     it('should disable sync button while loading', async () => {
       (fetch as jest.Mock).mockImplementation(() => new Promise(() => {})); // Never resolves
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Sync button should be disabled while analytics are loading
       await waitFor(() => {
@@ -385,7 +395,7 @@ describe('Dashboard Page', () => {
 
   describe('Results Summary and Pagination', () => {
     it('should display results count with pagination info', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         // New format: "Showing 1-2 of 2 results"
@@ -394,7 +404,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should display search term in results summary', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         const searchInput = screen.getByPlaceholderText('Search series or tracks...');
@@ -407,7 +417,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should have page size selector', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
@@ -426,14 +436,14 @@ describe('Dashboard Page', () => {
 
   describe('Responsive Design', () => {
     it('should have responsive grid layout for controls', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       const controlsGrid = screen.getByText('Group By').closest('div')?.parentElement;
       expect(controlsGrid).toHaveClass('grid', 'grid-cols-1', 'md:grid-cols-3');
     });
 
     it('should have responsive button layout', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Check for responsive flex classes
       const container = screen.getByRole('main');
@@ -441,7 +451,7 @@ describe('Dashboard Page', () => {
     });
 
     it('should have overflow handling for table', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         const tableContainer = screen.getByRole('table').parentElement;
@@ -452,7 +462,7 @@ describe('Dashboard Page', () => {
 
   describe('Expandable Row Details', () => {
     it('should display expand icons on each row', async () => {
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
@@ -479,7 +489,7 @@ describe('Dashboard Page', () => {
         });
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Wait for analytics data to load
       await waitFor(() => {
@@ -514,7 +524,7 @@ describe('Dashboard Page', () => {
         });
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Wait for analytics data to load
       await waitFor(() => {
@@ -547,7 +557,7 @@ describe('Dashboard Page', () => {
         });
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       // Wait for analytics data to load
       await waitFor(() => {
@@ -593,7 +603,7 @@ describe('Dashboard Page', () => {
         });
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();
@@ -629,7 +639,7 @@ describe('Dashboard Page', () => {
         });
       });
 
-      render(<Dashboard />);
+      renderWithProviders(<Dashboard />);
 
       await waitFor(() => {
         expect(screen.getByText('Skip Barber Formula 2000')).toBeInTheDocument();

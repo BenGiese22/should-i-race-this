@@ -146,7 +146,7 @@ describe('Home Page', () => {
       expect(screen.getByText('Driver Profile')).toBeInTheDocument();
       expect(screen.getByText('Test Driver')).toBeInTheDocument();
       expect(screen.getByText('123456')).toBeInTheDocument();
-      expect(screen.getByText('2')).toBeInTheDocument(); // License classes count
+      expect(screen.getByText('2 Classes')).toBeInTheDocument(); // License classes count
     });
 
     it('should display license classes information', () => {
@@ -157,9 +157,9 @@ describe('Home Page', () => {
 
       render(<Home />);
 
-      expect(screen.getByText('road:')).toBeInTheDocument();
+      expect(screen.getByText('Road')).toBeInTheDocument();
       expect(screen.getByText('B')).toBeInTheDocument();
-      expect(screen.getByText('oval:')).toBeInTheDocument();
+      expect(screen.getByText('Oval')).toBeInTheDocument();
       expect(screen.getByText('C')).toBeInTheDocument();
     });
 

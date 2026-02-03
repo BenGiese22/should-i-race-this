@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth/hooks';
 import Image from 'next/image';
 import { Check, BarChart3, Search, LogOut } from 'lucide-react';
 import { IRacingLoginButton } from '@/components/ui/iracing-login-button';
+import { formatLicenseCategory, formatLicenseLevel } from '@/lib/utils/license-formatter';
 
 export default function Home() {
   const { user, loading, login, logout } = useAuth();
@@ -44,28 +45,54 @@ export default function Home() {
             </p>
             
             {user && (
-              <div className="card max-w-md mx-auto mb-8">
-                <h3 className="text-lg font-semibold mb-4 text-racing-gray-900">Driver Profile</h3>
-                <div className="text-left space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-racing-gray-600">Driver:</span>
-                    <span className="font-semibold text-racing-gray-900">{user.displayName}</span>
+              <div className="card max-w-2xl mx-auto mb-8 bg-white/80 backdrop-blur-sm shadow-lg">
+                <h3 className="text-xl font-bold mb-6 text-racing-gray-900 border-b border-racing-gray-200 pb-3">
+                  Driver Profile
+                </h3>
+                <div className="text-left space-y-4">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-racing-gray-600 font-medium">Driver:</span>
+                    <span className="font-bold text-racing-gray-900 text-lg">{user.displayName}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-racing-gray-600">iRacing ID:</span>
-                    <span className="font-mono text-racing-blue">{user.iracingCustomerId}</span>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-racing-gray-600 font-medium">iRacing ID:</span>
+                    <span className="font-mono text-racing-blue font-semibold">{user.iracingCustomerId}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-racing-gray-600">License Classes:</span>
-                    <span className="font-semibold text-racing-green">{user.licenseClasses.length}</span>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-racing-gray-600 font-medium">License Classes:</span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-racing-green/10 text-racing-green border border-racing-green/20">
+                      {user.licenseClasses.length} {user.licenseClasses.length === 1 ? 'Class' : 'Classes'}
+                    </span>
                   </div>
                   {user.licenseClasses.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-racing-gray-200">
-                      <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="mt-6 pt-4 border-t border-racing-gray-200">
+                      <h4 className="text-sm font-semibold text-racing-gray-700 mb-3 uppercase tracking-wide">
+                        Your Licenses
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {user.licenseClasses.map((license, index) => (
-                          <div key={index} className="flex justify-between">
-                            <span className="capitalize text-racing-gray-600">{license.category}:</span>
-                            <span className="font-semibold text-racing-gray-900">{license.level}</span>
+                          <div 
+                            key={index} 
+                            className="flex items-center justify-between p-3 bg-gradient-to-r from-racing-gray-50 to-racing-gray-100 rounded-lg border border-racing-gray-200 hover:border-racing-blue/30 transition-colors"
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-xs text-racing-gray-500 font-medium uppercase tracking-wide">
+                                {formatLicenseCategory(license.category)}
+                              </span>
+                              <span className="text-lg font-bold text-racing-gray-900 mt-0.5">
+                                {formatLicenseLevel(license.level)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-right">
+                                <div className="text-xs text-racing-gray-500">iRating</div>
+                                <div className="text-sm font-bold text-racing-blue">{license.iRating}</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-racing-gray-500">SR</div>
+                                <div className="text-sm font-bold text-racing-green">{license.safetyRating.toFixed(2)}</div>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
