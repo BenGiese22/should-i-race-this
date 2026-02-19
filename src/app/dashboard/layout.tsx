@@ -10,7 +10,7 @@ export default function DashboardLayout({
 }) {
   return (
     <FeatureFlagsProvider>
-      <div className="min-h-screen bg-racing-gray-50 dark:bg-racing-gray-900">
+      <div className="min-h-screen">
         <DashboardHeader />
         <main>{children}</main>
       </div>

@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -19,7 +18,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Racing-themed color palette
+        // Racing-themed color palette (PRESERVED - existing values)
         racing: {
           // Primary racing colors
           red: '#DC2626',      // Ferrari red
@@ -55,7 +54,49 @@ module.exports = {
             800: '#1F2937',
             900: '#111827',
           }
-        }
+        },
+        // NEW: Semantic design tokens from Figma
+        background: 'var(--bg-app)',
+        surface: 'var(--bg-surface)',
+        elevated: 'var(--bg-elevated)',
+        hover: 'var(--bg-hover)',
+        border: {
+          subtle: 'var(--border-subtle)',
+          medium: 'var(--border-medium)',
+          emphasis: 'var(--border-emphasis)',
+        },
+        text: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          tertiary: 'var(--text-tertiary)',
+          disabled: 'var(--text-disabled)',
+        },
+        license: {
+          rookie: 'var(--license-rookie)',
+          d: 'var(--license-d)',
+          c: 'var(--license-c)',
+          b: 'var(--license-b)',
+          a: 'var(--license-a)',
+          pro: 'var(--license-pro)',
+        },
+        semantic: {
+          positive: 'var(--semantic-positive)',
+          'positive-bg': 'var(--semantic-positive-bg)',
+          'positive-border': 'var(--semantic-positive-border)',
+          caution: 'var(--semantic-caution)',
+          'caution-bg': 'var(--semantic-caution-bg)',
+          'caution-border': 'var(--semantic-caution-border)',
+          danger: 'var(--semantic-danger)',
+          'danger-bg': 'var(--semantic-danger-bg)',
+          'danger-border': 'var(--semantic-danger-border)',
+        },
+        accent: {
+          primary: 'var(--accent-primary)',
+          'primary-bright': 'var(--accent-primary-bright)',
+          'primary-glow': 'var(--accent-primary-glow)',
+          info: 'var(--accent-info)',
+          'info-bg': 'var(--accent-info-bg)',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

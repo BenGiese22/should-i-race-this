@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { LicenseBadge } from '@/components/ui/LicenseBadge';
 import { ConfidenceBadge } from './ConfidenceBadge';
 import type { ScoredRecommendation, RecommendationMode } from '@/lib/recommendations/types';
@@ -15,6 +14,7 @@ interface OtherOptionsListProps {
 /**
  * Compact list view for recommendations beyond top 3
  * Shows key info in a scannable format
+ * Displays exactly 5 recommendations (ranks 4-8)
  */
 export function OtherOptionsList({
   recommendations,
@@ -22,15 +22,11 @@ export function OtherOptionsList({
   onSelect,
   className = '',
 }: OtherOptionsListProps) {
-  const [expanded, setExpanded] = useState(false);
-
   if (recommendations.length === 0) {
     return null;
   }
 
-  const displayCount = expanded ? recommendations.length : Math.min(5, recommendations.length);
-  const displayedRecs = recommendations.slice(0, displayCount);
-  const hasMore = recommendations.length > 5;
+  const displayedRecs = recommendations;
 
   // Get the primary score label based on mode
   const getPrimaryScoreLabel = () => {
@@ -62,9 +58,6 @@ export function OtherOptionsList({
         <h3 className="font-semibold text-racing-gray-900 dark:text-white">
           Other Options
         </h3>
-        <p className="text-xs text-racing-gray-500 dark:text-racing-gray-400">
-          {recommendations.length} more {recommendations.length === 1 ? 'series' : 'series'} available
-        </p>
       </div>
 
       <div className="divide-y divide-racing-gray-100 dark:divide-racing-gray-700">
@@ -126,32 +119,6 @@ export function OtherOptionsList({
           );
         })}
       </div>
-
-      {/* Show more/less */}
-      {hasMore && (
-        <div className="px-4 py-3 border-t border-racing-gray-200 dark:border-racing-gray-700">
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="w-full text-sm text-racing-blue hover:text-racing-blue/80 font-medium flex items-center justify-center gap-1"
-          >
-            {expanded ? (
-              <>
-                Show Less
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              </>
-            ) : (
-              <>
-                Show {recommendations.length - 5} More
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </>
-            )}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

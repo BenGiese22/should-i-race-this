@@ -187,6 +187,25 @@ const newDriverProfile: RecommendationResponse = {
       ],
     },
   },
+  userHistory: {
+    userId: 'mock-new-driver',
+    seriesTrackHistory: [
+      { seriesId: 234, trackId: 238, raceCount: 5, avgStartingPosition: 12.4, avgFinishingPosition: 11.2, avgPositionDelta: 1.2, avgIncidents: 4.2, finishPositionStdDev: 3.8, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 234, trackId: 116, raceCount: 3, avgStartingPosition: 14.0, avgFinishingPosition: 13.7, avgPositionDelta: 0.3, avgIncidents: 5.0, finishPositionStdDev: 4.2, lastRaceDate: new Date('2025-02-08') },
+      { seriesId: 235, trackId: 116, raceCount: 4, avgStartingPosition: 10.5, avgFinishingPosition: 9.8, avgPositionDelta: 0.7, avgIncidents: 3.5, finishPositionStdDev: 2.9, lastRaceDate: new Date('2025-02-09') },
+    ],
+    overallStats: {
+      totalRaces: 12,
+      avgIncidentsPerRace: 4.2,
+      avgPositionDelta: 0.7,
+      overallConsistency: 3.6,
+    },
+    licenseClasses: [
+      { category: 'sports_car', level: LicenseLevel.ROOKIE, safetyRating: 2.8, iRating: 1150 },
+      { category: 'formula_car', level: LicenseLevel.ROOKIE, safetyRating: 2.5, iRating: 1100 },
+      { category: 'oval', level: LicenseLevel.ROOKIE, safetyRating: 2.2, iRating: 1050 },
+    ],
+  },
   metadata: {
     totalOpportunities: 15,
     highConfidenceCount: 1,
@@ -276,6 +295,31 @@ const roadVeteranProfile: RecommendationResponse = {
       ],
     },
   },
+  userHistory: {
+    userId: 'mock-road-veteran',
+    seriesTrackHistory: [
+      { seriesId: 399, trackId: 119, raceCount: 45, avgStartingPosition: 8.2, avgFinishingPosition: 6.5, avgPositionDelta: 1.7, avgIncidents: 1.8, finishPositionStdDev: 2.4, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 399, trackId: 116, raceCount: 38, avgStartingPosition: 9.1, avgFinishingPosition: 7.8, avgPositionDelta: 1.3, avgIncidents: 2.1, finishPositionStdDev: 2.8, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 399, trackId: 230, raceCount: 32, avgStartingPosition: 7.5, avgFinishingPosition: 6.2, avgPositionDelta: 1.3, avgIncidents: 1.5, finishPositionStdDev: 2.1, lastRaceDate: new Date('2025-02-08') },
+      { seriesId: 400, trackId: 116, raceCount: 42, avgStartingPosition: 6.8, avgFinishingPosition: 5.4, avgPositionDelta: 1.4, avgIncidents: 1.9, finishPositionStdDev: 2.3, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 400, trackId: 119, raceCount: 28, avgStartingPosition: 7.2, avgFinishingPosition: 6.1, avgPositionDelta: 1.1, avgIncidents: 2.0, finishPositionStdDev: 2.5, lastRaceDate: new Date('2025-02-07') },
+      { seriesId: 401, trackId: 246, raceCount: 25, avgStartingPosition: 9.5, avgFinishingPosition: 8.2, avgPositionDelta: 1.3, avgIncidents: 2.4, finishPositionStdDev: 3.1, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 401, trackId: 116, raceCount: 22, avgStartingPosition: 8.8, avgFinishingPosition: 7.5, avgPositionDelta: 1.3, avgIncidents: 2.2, finishPositionStdDev: 2.7, lastRaceDate: new Date('2025-02-06') },
+      { seriesId: 402, trackId: 230, raceCount: 38, avgStartingPosition: 10.2, avgFinishingPosition: 9.1, avgPositionDelta: 1.1, avgIncidents: 1.6, finishPositionStdDev: 2.2, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 403, trackId: 58, raceCount: 18, avgStartingPosition: 11.5, avgFinishingPosition: 9.8, avgPositionDelta: 1.7, avgIncidents: 2.8, finishPositionStdDev: 3.4, lastRaceDate: new Date('2025-02-05') },
+    ],
+    overallStats: {
+      totalRaces: 487,
+      avgIncidentsPerRace: 2.0,
+      avgPositionDelta: 1.4,
+      overallConsistency: 2.6,
+    },
+    licenseClasses: [
+      { category: 'sports_car', level: LicenseLevel.A, safetyRating: 4.2, iRating: 2850 },
+      { category: 'formula_car', level: LicenseLevel.B, safetyRating: 3.5, iRating: 2100 },
+      { category: 'oval', level: LicenseLevel.D, safetyRating: 2.8, iRating: 1400 },
+    ],
+  },
   metadata: {
     totalOpportunities: 45,
     highConfidenceCount: 28,
@@ -364,6 +408,30 @@ const ovalSpecialistProfile: RecommendationResponse = {
         { trackId: 169, trackName: 'Talladega Superspeedway', raceCount: 65 },
       ],
     },
+  },
+  userHistory: {
+    userId: 'mock-oval-specialist',
+    seriesTrackHistory: [
+      { seriesId: 141, trackId: 191, raceCount: 89, avgStartingPosition: 10.5, avgFinishingPosition: 8.2, avgPositionDelta: 2.3, avgIncidents: 3.1, finishPositionStdDev: 4.2, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 141, trackId: 33, raceCount: 52, avgStartingPosition: 11.2, avgFinishingPosition: 9.5, avgPositionDelta: 1.7, avgIncidents: 2.8, finishPositionStdDev: 3.8, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 141, trackId: 169, raceCount: 45, avgStartingPosition: 12.8, avgFinishingPosition: 10.1, avgPositionDelta: 2.7, avgIncidents: 4.2, finishPositionStdDev: 5.1, lastRaceDate: new Date('2025-02-08') },
+      { seriesId: 142, trackId: 33, raceCount: 76, avgStartingPosition: 9.8, avgFinishingPosition: 7.9, avgPositionDelta: 1.9, avgIncidents: 2.5, finishPositionStdDev: 3.5, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 142, trackId: 191, raceCount: 48, avgStartingPosition: 10.5, avgFinishingPosition: 8.8, avgPositionDelta: 1.7, avgIncidents: 3.0, finishPositionStdDev: 3.9, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 143, trackId: 134, raceCount: 38, avgStartingPosition: 8.5, avgFinishingPosition: 7.2, avgPositionDelta: 1.3, avgIncidents: 2.2, finishPositionStdDev: 2.8, lastRaceDate: new Date('2025-02-08') },
+      { seriesId: 144, trackId: 169, raceCount: 65, avgStartingPosition: 7.2, avgFinishingPosition: 5.8, avgPositionDelta: 1.4, avgIncidents: 3.8, finishPositionStdDev: 4.5, lastRaceDate: new Date('2025-02-07') },
+      { seriesId: 145, trackId: 292, raceCount: 42, avgStartingPosition: 9.5, avgFinishingPosition: 8.1, avgPositionDelta: 1.4, avgIncidents: 1.5, finishPositionStdDev: 2.4, lastRaceDate: new Date('2025-02-10') },
+    ],
+    overallStats: {
+      totalRaces: 623,
+      avgIncidentsPerRace: 2.9,
+      avgPositionDelta: 1.8,
+      overallConsistency: 3.8,
+    },
+    licenseClasses: [
+      { category: 'oval', level: LicenseLevel.A, safetyRating: 4.5, iRating: 3200 },
+      { category: 'sports_car', level: LicenseLevel.ROOKIE, safetyRating: 2.5, iRating: 1250 },
+      { category: 'dirt_oval', level: LicenseLevel.C, safetyRating: 3.2, iRating: 1800 },
+    ],
   },
   metadata: {
     totalOpportunities: 32,
@@ -456,6 +524,32 @@ const multiDisciplineProfile: RecommendationResponse = {
       ],
     },
   },
+  userHistory: {
+    userId: 'mock-multi-discipline',
+    seriesTrackHistory: [
+      { seriesId: 234, trackId: 238, raceCount: 28, avgStartingPosition: 9.2, avgFinishingPosition: 7.8, avgPositionDelta: 1.4, avgIncidents: 2.1, finishPositionStdDev: 2.8, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 234, trackId: 116, raceCount: 18, avgStartingPosition: 10.5, avgFinishingPosition: 9.2, avgPositionDelta: 1.3, avgIncidents: 2.3, finishPositionStdDev: 3.1, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 399, trackId: 119, raceCount: 25, avgStartingPosition: 11.8, avgFinishingPosition: 10.5, avgPositionDelta: 1.3, avgIncidents: 2.5, finishPositionStdDev: 3.2, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 399, trackId: 116, raceCount: 15, avgStartingPosition: 12.2, avgFinishingPosition: 11.1, avgPositionDelta: 1.1, avgIncidents: 2.7, finishPositionStdDev: 3.4, lastRaceDate: new Date('2025-02-08') },
+      { seriesId: 142, trackId: 33, raceCount: 22, avgStartingPosition: 13.5, avgFinishingPosition: 12.2, avgPositionDelta: 1.3, avgIncidents: 3.2, finishPositionStdDev: 3.8, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 305, trackId: 73, raceCount: 12, avgStartingPosition: 14.2, avgFinishingPosition: 13.5, avgPositionDelta: 0.7, avgIncidents: 2.8, finishPositionStdDev: 3.5, lastRaceDate: new Date('2025-02-07') },
+      { seriesId: 260, trackId: 353, raceCount: 18, avgStartingPosition: 10.8, avgFinishingPosition: 10.2, avgPositionDelta: 0.6, avgIncidents: 4.5, finishPositionStdDev: 4.2, lastRaceDate: new Date('2025-02-06') },
+      { seriesId: 261, trackId: 354, raceCount: 14, avgStartingPosition: 11.5, avgFinishingPosition: 11.0, avgPositionDelta: 0.5, avgIncidents: 5.2, finishPositionStdDev: 4.8, lastRaceDate: new Date('2025-02-05') },
+    ],
+    overallStats: {
+      totalRaces: 312,
+      avgIncidentsPerRace: 2.9,
+      avgPositionDelta: 1.0,
+      overallConsistency: 3.5,
+    },
+    licenseClasses: [
+      { category: 'sports_car', level: LicenseLevel.B, safetyRating: 3.4, iRating: 2100 },
+      { category: 'oval', level: LicenseLevel.B, safetyRating: 3.2, iRating: 1950 },
+      { category: 'formula_car', level: LicenseLevel.B, safetyRating: 3.0, iRating: 1850 },
+      { category: 'dirt_oval', level: LicenseLevel.C, safetyRating: 2.8, iRating: 1600 },
+      { category: 'dirt_road', level: LicenseLevel.C, safetyRating: 2.6, iRating: 1500 },
+    ],
+  },
   metadata: {
     totalOpportunities: 85,
     highConfidenceCount: 35,
@@ -536,6 +630,29 @@ const safetyRecoveryProfile: RecommendationResponse = {
         { trackId: 238, trackName: 'Laguna Seca', raceCount: 24 },
       ],
     },
+  },
+  userHistory: {
+    userId: 'mock-safety-recovery',
+    seriesTrackHistory: [
+      { seriesId: 399, trackId: 119, raceCount: 32, avgStartingPosition: 10.5, avgFinishingPosition: 9.8, avgPositionDelta: 0.7, avgIncidents: 5.8, finishPositionStdDev: 4.2, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 399, trackId: 116, raceCount: 22, avgStartingPosition: 11.2, avgFinishingPosition: 10.8, avgPositionDelta: 0.4, avgIncidents: 6.2, finishPositionStdDev: 4.5, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 401, trackId: 226, raceCount: 18, avgStartingPosition: 12.8, avgFinishingPosition: 12.5, avgPositionDelta: 0.3, avgIncidents: 5.5, finishPositionStdDev: 4.8, lastRaceDate: new Date('2025-02-08') },
+      { seriesId: 401, trackId: 116, raceCount: 25, avgStartingPosition: 11.5, avgFinishingPosition: 11.2, avgPositionDelta: 0.3, avgIncidents: 5.2, finishPositionStdDev: 4.3, lastRaceDate: new Date('2025-02-07') },
+      { seriesId: 234, trackId: 116, raceCount: 24, avgStartingPosition: 8.5, avgFinishingPosition: 7.8, avgPositionDelta: 0.7, avgIncidents: 2.8, finishPositionStdDev: 2.5, lastRaceDate: new Date('2025-02-10') },
+      { seriesId: 234, trackId: 238, raceCount: 21, avgStartingPosition: 9.2, avgFinishingPosition: 8.5, avgPositionDelta: 0.7, avgIncidents: 3.1, finishPositionStdDev: 2.8, lastRaceDate: new Date('2025-02-09') },
+      { seriesId: 402, trackId: 62, raceCount: 15, avgStartingPosition: 10.8, avgFinishingPosition: 10.2, avgPositionDelta: 0.6, avgIncidents: 3.5, finishPositionStdDev: 3.2, lastRaceDate: new Date('2025-02-06') },
+    ],
+    overallStats: {
+      totalRaces: 245,
+      avgIncidentsPerRace: 4.6,
+      avgPositionDelta: 0.5,
+      overallConsistency: 3.8,
+    },
+    licenseClasses: [
+      { category: 'sports_car', level: LicenseLevel.B, safetyRating: 2.1, iRating: 2450 },
+      { category: 'formula_car', level: LicenseLevel.C, safetyRating: 2.4, iRating: 1800 },
+      { category: 'oval', level: LicenseLevel.D, safetyRating: 2.0, iRating: 1350 },
+    ],
   },
   metadata: {
     totalOpportunities: 42,

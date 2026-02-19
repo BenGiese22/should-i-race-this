@@ -179,7 +179,7 @@ export const CacheTTL = {
   USER_PERFORMANCE: 5 * 60 * 1000,      // 5 minutes - user data changes less frequently
   GLOBAL_STATS: 10 * 60 * 1000,         // 10 minutes - global stats are more stable
   PRIMARY_CATEGORY: 30 * 60 * 1000,     // 30 minutes - category rarely changes
-  RACING_OPPORTUNITIES: 5 * 60 * 1000,  // 5 minutes - schedule can change
+  RACING_OPPORTUNITIES: 60 * 1000,      // 1 minute - next race times need frequent updates
   USER_LICENSES: 60 * 60 * 1000,        // 1 hour - licenses change infrequently
   BATCH_OPERATIONS: 10 * 60 * 1000       // 10 minutes - batch results are stable
 } as const;

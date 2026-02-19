@@ -281,6 +281,17 @@ export async function syncScheduleData(
 
       // Process each race week in the season's schedule
       for (const scheduleEntry of seasonData.schedules) {
+        // Debug: Log race_time_descriptors for first few entries
+        if (debugLogCount < MAX_DEBUG_LOGS) {
+          console.log(`Debug: Schedule entry ${debugLogCount + 1} race_time_descriptors:`, {
+            series_id: seriesId,
+            race_week_num: scheduleEntry.race_week_num,
+            has_race_time_descriptors: !!scheduleEntry.race_time_descriptors,
+            race_time_descriptors: scheduleEntry.race_time_descriptors,
+            all_schedule_keys: Object.keys(scheduleEntry).slice(0, 15)
+          });
+        }
+
         // Extract required data
         const trackId = scheduleEntry.track?.track_id;
         const trackName = scheduleEntry.track?.track_name;
@@ -327,6 +338,7 @@ export async function syncScheduleData(
           raceWeekNum,
           weekStart: weekDates.start.toISOString().split('T')[0], // Convert to date string
           weekEnd: weekDates.end.toISOString().split('T')[0], // Convert to date string
+          raceTimeDescriptors: scheduleEntry.race_time_descriptors || null, // Store race timing info
         };
 
         // Debug: Log the first few entries being inserted
@@ -335,9 +347,29 @@ export async function syncScheduleData(
         }
 
         try {
+          // Use onConflictDoUpdate to update race_time_descriptors for existing entries
           await db.insert(scheduleEntries)
             .values(dbEntry)
-            .onConflictDoNothing(); // Ignore duplicates
+            .onConflictDoUpdate({
+              target: [
+                scheduleEntries.seriesId,
+                scheduleEntries.trackId,
+                scheduleEntries.seasonYear,
+                scheduleEntries.seasonQuarter,
+                scheduleEntries.raceWeekNum
+              ],
+              set: {
+                raceTimeDescriptors: dbEntry.raceTimeDescriptors,
+                seriesName: dbEntry.seriesName,
+                trackName: dbEntry.trackName,
+                licenseRequired: dbEntry.licenseRequired,
+                category: dbEntry.category,
+                raceLength: dbEntry.raceLength,
+                hasOpenSetup: dbEntry.hasOpenSetup,
+                weekStart: dbEntry.weekStart,
+                weekEnd: dbEntry.weekEnd
+              }
+            });
           
           entriesAdded++;
         } catch (error) {

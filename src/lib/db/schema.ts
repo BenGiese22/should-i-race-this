@@ -100,6 +100,7 @@ export const scheduleEntries = pgTable('schedule_entries', {
   raceWeekNum: integer('race_week_num').notNull(), // iRacing race week number (0-based)
   weekStart: date('week_start').notNull(), // actual calendar start date
   weekEnd: date('week_end').notNull(), // actual calendar end date
+  raceTimeDescriptors: jsonb('race_time_descriptors'), // Store race timing info from iRacing API
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   // Indexes for performance

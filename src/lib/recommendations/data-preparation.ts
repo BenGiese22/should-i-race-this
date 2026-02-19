@@ -14,6 +14,7 @@ import {
 import { analyticsIntegration } from './analytics-integration';
 import { recommendationCache, CacheKeys, CacheTTL } from './cache';
 import { batchProcessor } from './batch-processor';
+import { calculateNextRaceTime, generateTimeSlots, type RaceTimeDescriptor } from '../iracing/race-time-calculator';
 
 /**
  * Prepare user history data for scoring algorithm
@@ -75,6 +76,8 @@ export async function prepareUserHistory(userId: string): Promise<UserHistory> {
  * Now uses analytics integration for global statistics
  * Requirements: 2.3, 7.1
  * Performance Optimization: Enhanced caching and batch processing (Requirements: 8.1, 8.2, 8.3)
+ * 
+ * IMPORTANT: Filters out races that have already started based on race_time_descriptors
  */
 export async function getCurrentRacingOpportunities(): Promise<RacingOpportunity[]> {
   // Check cache first
@@ -103,8 +106,32 @@ export async function getCurrentRacingOpportunities(): Promise<RacingOpportunity
     return emptyResult;
   }
 
+  // Filter out races that have no upcoming sessions
+  const validScheduleResults = scheduleResults.filter(entry => {
+    // If no race time descriptors, keep it (backward compatibility)
+    if (!entry.raceTimeDescriptors) {
+      return true;
+    }
+
+    // Calculate next race time
+    const nextRace = calculateNextRaceTime(
+      entry.raceTimeDescriptors as RaceTimeDescriptor[],
+      currentDate
+    );
+
+    // Only include if there's an upcoming race
+    return nextRace !== null;
+  });
+
+  // Early return if all races have passed
+  if (validScheduleResults.length === 0) {
+    const emptyResult: RacingOpportunity[] = [];
+    recommendationCache.set(cacheKey, emptyResult, CacheTTL.RACING_OPPORTUNITIES);
+    return emptyResult;
+  }
+
   // Prepare batch requests for global stats
-  const batchRequests = scheduleResults.map(entry => ({
+  const batchRequests = validScheduleResults.map(entry => ({
     seriesId: entry.seriesId,
     trackId: entry.trackId
   }));
@@ -126,8 +153,8 @@ export async function getCurrentRacingOpportunities(): Promise<RacingOpportunity
     });
   });
   
-  // Build opportunities with cached global stats
-  const opportunities: RacingOpportunity[] = scheduleResults.map(entry => {
+  // Build opportunities with real time slots from race_time_descriptors
+  const opportunities: RacingOpportunity[] = validScheduleResults.map(entry => {
     const key = `${entry.seriesId}:${entry.trackId}`;
     const globalStats = globalStatsMap.get(key) || {
       avgIncidentsPerRace: 2.5,
@@ -138,8 +165,15 @@ export async function getCurrentRacingOpportunities(): Promise<RacingOpportunity
       avgRaceLength: 60
     };
     
-    // Generate mock time slots (in a real implementation, this would come from iRacing API)
-    const timeSlots = generateMockTimeSlots();
+    // Generate time slots from race_time_descriptors or use mock data as fallback
+    const timeSlots = entry.raceTimeDescriptors
+      ? generateRealTimeSlots(entry.raceTimeDescriptors as RaceTimeDescriptor[], currentDate)
+      : generateMockTimeSlots();
+    
+    // Extract repeat minutes from race_time_descriptors
+    const repeatMinutes = entry.raceTimeDescriptors
+      ? (entry.raceTimeDescriptors as RaceTimeDescriptor[])[0]?.repeat_minutes || null
+      : null;
     
     return {
       seriesId: entry.seriesId,
@@ -154,7 +188,8 @@ export async function getCurrentRacingOpportunities(): Promise<RacingOpportunity
       raceLength: entry.raceLength ?? 60, // Default to 60 minutes
       hasOpenSetup: entry.hasOpenSetup ?? false,
       timeSlots,
-      globalStats
+      globalStats,
+      repeatMinutes
     };
   });
 
@@ -190,6 +225,26 @@ export async function prefetchRecommendationData(userId: string): Promise<void> 
  */
 export function getCachePerformanceMetrics() {
   return analyticsIntegration.getCacheMetrics();
+}
+
+/**
+ * Generate real time slots from race_time_descriptors
+ * Converts the iRacing API data into TimeSlot format
+ */
+function generateRealTimeSlots(
+  raceTimeDescriptors: RaceTimeDescriptor[],
+  currentTime: Date
+): TimeSlot[] {
+  const timeSlotData = generateTimeSlots(raceTimeDescriptors, currentTime);
+  
+  // Convert to TimeSlot format with mock SOF and participant data
+  // In a real implementation, this would come from actual session data
+  return timeSlotData.slice(0, 10).map(slot => ({
+    hour: slot.hour,
+    dayOfWeek: slot.dayOfWeek,
+    strengthOfField: 1400 + Math.random() * 400, // Mock SOF
+    participantCount: 15 + Math.floor(Math.random() * 20) // Mock participant count
+  }));
 }
 
 /**

@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/* 
+ * SHOULD I RACE THIS? — DESIGN FOUNDATION
+ * Dark Mode Telemetry Interface
+ * Professional Racing Analytics Product
+ */
+
+:root {
+  /* DARK MODE FOUNDATION - CRITICAL */
+  /* Near-black neutral base - professional telemetry feel, NOT navy */
+  --bg-app: #0B0D10;
+  --bg-surface: #14161B;
+  --bg-elevated: #1A1D23;
+  --bg-hover: #1F2228;
+  
+  /* Borders - subtle cool-gray separators */
+  --border-subtle: #2A2D35;
+  --border-medium: #363942;
+  --border-emphasis: #454952;
+  
+  /* Typography - high contrast for readability */
+  --text-primary: #F5F5F6;
+  --text-secondary: #B4B6BC;
+  --text-tertiary: #797C85;
+  --text-disabled: #52555D;
+  
+  /* OFFICIAL iRACING LICENSE COLORS - NON-NEGOTIABLE */
+  /* Based on iRacing's official license hierarchy */
+  --license-rookie: #E53E3E;        /* Red */
+  --license-d: #DD6B20;             /* Orange/Bronze */
+  --license-c: #D69E2E;             /* Yellow */
+  --license-b: #38A169;             /* Green */
+  --license-a: #3182CE;             /* Blue */
+  --license-pro: #2D3748;           /* Dark gray */
+  
+  --license-rookie-glow: rgba(229, 62, 62, 0.15);
+  --license-d-glow: rgba(221, 107, 32, 0.15);
+  --license-c-glow: rgba(214, 158, 46, 0.15);
+  --license-b-glow: rgba(56, 161, 105, 0.15);
+  --license-a-glow: rgba(49, 130, 206, 0.15);
+  --license-pro-glow: rgba(45, 55, 72, 0.15);
+  
+  /* SEMANTIC COLOR SYSTEM */
+  /* Green = Low risk / positive outcome */
+  --semantic-positive: #48BB78;
+  --semantic-positive-bg: rgba(72, 187, 120, 0.1);
+  --semantic-positive-border: rgba(72, 187, 120, 0.3);
+  
+  /* Amber = Moderate risk / caution */
+  --semantic-caution: #F6AD55;
+  --semantic-caution-bg: rgba(246, 173, 85, 0.1);
+  --semantic-caution-border: rgba(246, 173, 85, 0.3);
+  
+  /* Red = High risk / destructive ONLY (use sparingly) */
+  --semantic-danger: #FC8181;
+  --semantic-danger-bg: rgba(252, 129, 129, 0.1);
+  --semantic-danger-border: rgba(252, 129, 129, 0.3);
+  
+  /* EMPHASIS COLOR - Orange/Amber for confidence and scoring */
+  --accent-primary: #F6AD55;
+  --accent-primary-bright: #FBD38D;
+  --accent-primary-glow: rgba(246, 173, 85, 0.2);
+  
+  /* Additional utility colors */
+  --accent-info: #63B3ED;
+  --accent-info-bg: rgba(99, 179, 237, 0.1);
+}
+
+/* TYPOGRAPHY SYSTEM */
+/* Professional sans-serif - Inter equivalent */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 
+    'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-feature-settings: 'tnum' 1; /* Tabular numerals for stats */
+}
+
+/* Page Titles */
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Section Titles */
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Card Titles (Series Names) - Primary Identity */
+h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Subtitles (Track Names) - Secondary Context */
+h4 {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Body Text */
+p {
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Metadata Labels */
+.label-metadata {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+/* Tabular Numbers for Statistics */
+.stat-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* ANIMATIONS */
+/* Subtle fade-in for recommendation updates */
+@keyframes subtleFade {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-subtle-fade {
+  animation: subtleFade 0.4s ease-out;
+}

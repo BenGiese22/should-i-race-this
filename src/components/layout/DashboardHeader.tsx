@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ThemeToggle } from '@/components/theme';
+import { useEffect, useState } from 'react';
 import { useFeatureFlags, MOCK_PROFILE_INFO } from '@/lib/feature-flags';
 import type { MockProfileId } from '@/lib/feature-flags';
 
@@ -65,21 +65,36 @@ const mockProfileOptions: { value: MockProfileId; label: string }[] = [
 ];
 
 /**
- * Dashboard header with navigation and theme toggle
+ * Dashboard header with navigation
  * Sticky at the top of the page
  */
 export function DashboardHeader() {
   const pathname = usePathname();
   const { flags, setMockProfile } = useFeatureFlags();
+  const [isProUser, setIsProUser] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    
+    setIsLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-racing-gray-200 dark:border-racing-gray-700 bg-white/80 dark:bg-racing-gray-800/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-surface/80 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Brand */}
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 text-racing-gray-900 dark:text-white font-bold text-lg"
+            className="flex items-center gap-2 text-text-primary font-bold text-lg"
           >
             <LogoIcon className="w-6 h-6" />
             <span className="hidden sm:inline">Should I Race This?</span>
@@ -103,8 +118,8 @@ export function DashboardHeader() {
                   className={`
                     flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
                     ${isActive
-                      ? 'bg-racing-blue/10 text-racing-blue dark:bg-racing-blue/20'
-                      : 'text-racing-gray-600 dark:text-racing-gray-400 hover:bg-racing-gray-100 dark:hover:bg-racing-gray-700 hover:text-racing-gray-900 dark:hover:text-white'
+                      ? 'bg-[var(--accent-primary-glow)] text-[var(--accent-primary-bright)]'
+                      : 'text-text-secondary hover:bg-hover hover:text-text-primary'
                     }
                   `}
                 >
@@ -115,8 +130,24 @@ export function DashboardHeader() {
             })}
           </nav>
 
-          {/* Right side: Mock profile selector, Theme toggle */}
+          {/* Right side: Pro toggle + Mock profile selector + Logout */}
           <div className="flex items-center gap-2">
+            {/* Pro/Free Toggle (Dev Only) */}
+            <button
+              onClick={() => setIsProUser(!isProUser)}
+              className={`
+                px-3 py-1.5 text-xs font-medium rounded-lg transition-colors
+                ${isProUser
+                  ? 'bg-[var(--accent-primary)] text-[var(--bg-app)] border border-[var(--accent-primary)]'
+                  : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] border border-[var(--border-medium)]'
+                }
+                hover:opacity-80
+              `}
+              aria-label="Toggle Pro/Free view"
+            >
+              {isProUser ? 'Pro View' : 'Free View'}
+            </button>
+
             {/* Mock Profile Selector (Debug) */}
             <div className="relative group">
               <select
@@ -125,10 +156,10 @@ export function DashboardHeader() {
                 className={`
                   px-2 py-1.5 text-xs rounded-lg cursor-pointer
                   ${flags.mockProfile
-                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
-                    : 'bg-racing-gray-100 dark:bg-racing-gray-800 text-racing-gray-600 dark:text-racing-gray-400 border border-transparent'
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    : 'bg-elevated text-text-secondary border border-transparent'
                   }
-                  focus:outline-none focus:ring-2 focus:ring-racing-blue
+                  focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]
                 `}
                 aria-label="Select mock profile"
               >
@@ -140,19 +171,81 @@ export function DashboardHeader() {
               </select>
               {/* Tooltip with profile description */}
               {flags.mockProfile && (
-                <div className="absolute top-full right-0 mt-2 px-3 py-2 bg-racing-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 max-w-xs">
+                <div className="absolute top-full right-0 mt-2 px-3 py-2 bg-elevated text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 max-w-xs">
                   <strong>Mock Data Active</strong>
                   <br />
                   {MOCK_PROFILE_INFO[flags.mockProfile].description}
-                  <div className="absolute bottom-full right-4 border-4 border-transparent border-b-racing-gray-900" />
+                  <div className="absolute bottom-full right-4 border-4 border-transparent border-b-elevated" />
                 </div>
               )}
             </div>
 
-            <ThemeToggle />
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className={`
+                flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all
+                ${isLoggingOut
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30'
+                }
+              `}
+              aria-label="Logout"
+              title="Logout and re-authenticate"
+            >
+              <svg 
+                className={`w-4 h-4 ${isLoggingOut ? 'animate-spin' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                {isLoggingOut ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                )}
+              </svg>
+              <span className="hidden sm:inline">
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
+              </span>
+            </button>
           </div>
         </div>
       </div>
     </header>
   );
+}
+
+// Export the pro user state for use in child components
+export function useProUserState() {
+  const [isProUser, setIsProUser] = useState(false);
+  
+  // Listen to storage events to sync across components
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dev_pro_mode') {
+        setIsProUser(e.newValue === 'true');
+      }
+    };
+    
+    // Check initial value
+    const stored = localStorage.getItem('dev_pro_mode');
+    if (stored) {
+      setIsProUser(stored === 'true');
+    }
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+  
+  const toggleProUser = () => {
+    const newValue = !isProUser;
+    setIsProUser(newValue);
+    localStorage.setItem('dev_pro_mode', String(newValue));
+    // Dispatch custom event for same-window updates
+    window.dispatchEvent(new CustomEvent('pro-mode-change', { detail: newValue }));
+  };
+  
+  return { isProUser, toggleProUser };
 }

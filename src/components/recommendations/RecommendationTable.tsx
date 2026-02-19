@@ -35,47 +35,20 @@ const getScoreColor = (score: number) => {
 const getScoreColorStyle = (score: number): string => {
   const clampedScore = Math.max(0, Math.min(100, score));
   
-  const startColor = '#ff4444'; // Red
-  const midColor = '#ffaa44';   // Orange
-  const endColor = '#44ff44';   // Green
+  // Use semantic color variables instead of hardcoded colors
+  const startColor = 'var(--semantic-danger)'; // Red
+  const midColor = 'var(--semantic-caution)';   // Orange
+  const endColor = 'var(--semantic-positive)';   // Green
   
-  let currentColor: string;
-  
+  // For inline styles, we need to use CSS variables directly
+  // Return the appropriate CSS variable based on score range
   if (clampedScore <= 33) {
-    // Red zone (0-33)
-    const ratio = clampedScore / 33;
-    currentColor = interpolateColor(startColor, '#ff6644', ratio);
+    return startColor;
   } else if (clampedScore <= 66) {
-    // Orange zone (34-66)
-    const ratio = (clampedScore - 33) / 33;
-    currentColor = interpolateColor('#ff6644', midColor, ratio);
+    return midColor;
   } else {
-    // Green zone (67-100)
-    const ratio = (clampedScore - 66) / 34;
-    currentColor = interpolateColor(midColor, endColor, ratio);
+    return endColor;
   }
-  
-  return currentColor;
-};
-
-// Helper function to interpolate between two hex colors
-const interpolateColor = (color1: string, color2: string, ratio: number): string => {
-  const hex1 = color1.replace('#', '');
-  const hex2 = color2.replace('#', '');
-  
-  const r1 = parseInt(hex1.substring(0, 2), 16);
-  const g1 = parseInt(hex1.substring(2, 4), 16);
-  const b1 = parseInt(hex1.substring(4, 6), 16);
-  
-  const r2 = parseInt(hex2.substring(0, 2), 16);
-  const g2 = parseInt(hex2.substring(2, 4), 16);
-  const b2 = parseInt(hex2.substring(4, 6), 16);
-  
-  const r = Math.round(r1 + (r2 - r1) * ratio);
-  const g = Math.round(g1 + (g2 - g1) * ratio);
-  const b = Math.round(b1 + (b2 - b1) * ratio);
-  
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 };
 
 export function RecommendationTable({ recommendations, onSelect }: RecommendationTableProps) {

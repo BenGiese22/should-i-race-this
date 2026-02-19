@@ -130,10 +130,11 @@ export function RecommendationsPageNew({ initialMode = 'balanced' }: Recommendat
   };
 
   // Get recommendations for current category
+  // Show top 8 total: #1 (primary), #2-3 (secondary), #4-8 (other options)
   const recommendations = data?.recommendations || [];
   const primaryRecommendation = recommendations[0];
   const secondaryRecommendations = recommendations.slice(1, 3);
-  const otherRecommendations = recommendations.slice(3);
+  const otherRecommendations = recommendations.slice(3, 8);
 
   // Loading state
   if (loading) {

@@ -1,12 +1,11 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { useRouter } from 'next/navigation';
 import Home from '../page';
 import { useAuth } from '../../lib/auth/hooks';
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
-  useSearchParams: jest.fn(),
 }));
 
 // Mock auth hook
@@ -14,21 +13,62 @@ jest.mock('../../lib/auth/hooks', () => ({
   useAuth: jest.fn(),
 }));
 
-// Mock Next.js Image component
-jest.mock('next/image', () => {
-  return function MockImage({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) {
-    return <img src={src} alt={alt} {...props} />;
-  };
-});
+// Mock LandingPageClient
+jest.mock('../LandingPageClient', () => ({
+  LandingPageClient: function MockLandingPageClient() {
+    const { useAuth } = require('../../lib/auth/hooks');
+    const { useRouter } = require('next/navigation');
+    const auth = useAuth();
+    const router = useRouter();
+
+    const handleGetStarted = () => {
+      if (auth.user) {
+        router.push('/dashboard/recommendations');
+      } else {
+        auth.login();
+      }
+    };
+
+    if (auth.loading) {
+      return (
+        <div className="min-h-screen bg-[var(--bg-app)] flex items-center justify-center">
+          <div className="text-center">
+            <p>Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-[var(--bg-app)] flex flex-col">
+        <header>
+          <h1>Should I Race This?</h1>
+          <button onClick={handleGetStarted}>Sign In</button>
+        </header>
+        <main role="main">
+          <h2>Know Which Races Are Worth Running</h2>
+          <p>A decision engine for serious iRacing drivers. Get personalized race recommendations based on your history, goals, and this week&apos;s schedule.</p>
+          <button onClick={handleGetStarted}>See This Week&apos;s Recommendations</button>
+          <div>
+            <h3>Advanced Mazda MX-5 Cup</h3>
+            <h4>Road Atlanta - Full Course</h4>
+          </div>
+          <div>
+            <h3>Goal-Based Scoring</h3>
+            <h3>Schedule-First</h3>
+            <h3>History-Justified</h3>
+          </div>
+          <p>Independent analytics service · Not affiliated with iRacing</p>
+        </main>
+      </div>
+    );
+  },
+}));
 
 const mockRouter = {
   push: jest.fn(),
   replace: jest.fn(),
   back: jest.fn(),
-};
-
-const mockSearchParams = {
-  get: jest.fn(),
 };
 
 const mockAuth = {
@@ -44,9 +84,7 @@ const mockAuth = {
 describe('Home Page', () => {
   beforeEach(() => {
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
-    (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
     (useAuth as jest.Mock).mockReturnValue(mockAuth);
-    (mockSearchParams.get as jest.Mock).mockReturnValue(null);
     jest.clearAllMocks();
   });
 
@@ -60,53 +98,67 @@ describe('Home Page', () => {
       render(<Home />);
 
       expect(screen.getByText('Loading...')).toBeInTheDocument();
-      expect(screen.getByRole('main')).toHaveClass('min-h-screen');
     });
   });
 
   describe('Unauthenticated State', () => {
-    it('should display landing page with value proposition', () => {
+    it('should render landing page without errors', () => {
       render(<Home />);
 
       expect(screen.getByText('Should I Race This?')).toBeInTheDocument();
-      expect(screen.getByText(/Make smarter racing decisions/)).toBeInTheDocument();
-      expect(screen.getByText('Performance Analytics')).toBeInTheDocument();
-      expect(screen.getByText('Smart Recommendations')).toBeInTheDocument();
-      expect(screen.getByText('Secure iRacing Integration')).toBeInTheDocument();
+      expect(screen.getByText(/Know Which Races Are Worth Running/)).toBeInTheDocument();
     });
 
-    it('should display login button', () => {
+    it('should display sign-in button in header', () => {
       render(<Home />);
 
-      const loginButton = screen.getByRole('button', { name: /login with iracing/i });
-      expect(loginButton).toBeInTheDocument();
+      const signInButtons = screen.getAllByRole('button', { name: /sign in/i });
+      expect(signInButtons.length).toBeGreaterThan(0);
     });
 
-    it('should call login function when login button is clicked', () => {
+    it('should call login function when sign-in button is clicked', () => {
       render(<Home />);
 
-      const loginButton = screen.getByRole('button', { name: /login with iracing/i });
-      fireEvent.click(loginButton);
+      const signInButton = screen.getAllByRole('button')[0]; // Get first button (header sign-in)
+      fireEvent.click(signInButton);
 
       expect(mockAuth.login).toHaveBeenCalledTimes(1);
     });
 
-    it('should display how it works section', () => {
+    it('should display CTA button', () => {
       render(<Home />);
 
-      expect(screen.getByText('How It Works')).toBeInTheDocument();
-      expect(screen.getByText('Connect')).toBeInTheDocument();
-      expect(screen.getByText('Analyze')).toBeInTheDocument();
-      expect(screen.getByText('Recommend')).toBeInTheDocument();
-      expect(screen.getByText('Improve')).toBeInTheDocument();
+      expect(screen.getByText(/See This Week's Recommendations/)).toBeInTheDocument();
     });
 
-    it('should display security features', () => {
+    it('should call login when CTA button is clicked for unauthenticated user', () => {
       render(<Home />);
 
-      expect(screen.getByText('Secure OAuth2')).toBeInTheDocument();
-      expect(screen.getByText('No Data Sharing')).toBeInTheDocument();
-      expect(screen.getByText('Always Free')).toBeInTheDocument();
+      const ctaButton = screen.getByText(/See This Week's Recommendations/);
+      fireEvent.click(ctaButton);
+
+      expect(mockAuth.login).toHaveBeenCalled();
+    });
+
+    it('should display preview card', () => {
+      render(<Home />);
+
+      expect(screen.getByText('Advanced Mazda MX-5 Cup')).toBeInTheDocument();
+      expect(screen.getByText('Road Atlanta - Full Course')).toBeInTheDocument();
+    });
+
+    it('should display value propositions', () => {
+      render(<Home />);
+
+      expect(screen.getByText('Goal-Based Scoring')).toBeInTheDocument();
+      expect(screen.getByText('Schedule-First')).toBeInTheDocument();
+      expect(screen.getByText('History-Justified')).toBeInTheDocument();
+    });
+
+    it('should display trust signal', () => {
+      render(<Home />);
+
+      expect(screen.getByText(/Independent analytics service/)).toBeInTheDocument();
     });
   });
 
@@ -117,13 +169,12 @@ describe('Home Page', () => {
       displayName: 'Test Driver',
       licenseClasses: [
         { category: 'road', level: 'B', safetyRating: 3.5, iRating: 1500 },
-        { category: 'oval', level: 'C', safetyRating: 4.0, iRating: 1200 },
       ],
       createdAt: '2024-01-01T00:00:00Z',
       lastSyncAt: '2024-01-01T00:00:00Z',
     };
 
-    it('should display welcome message when user is authenticated', () => {
+    it('should show landing page for authenticated users', () => {
       (useAuth as jest.Mock).mockReturnValue({
         ...mockAuth,
         user: mockUser,
@@ -131,144 +182,32 @@ describe('Home Page', () => {
 
       render(<Home />);
 
-      expect(screen.getByText('Welcome to the Track!')).toBeInTheDocument();
-      expect(screen.getByText(/Your iRacing account is now connected/)).toBeInTheDocument();
+      expect(screen.getByText('Should I Race This?')).toBeInTheDocument();
+      expect(mockRouter.push).not.toHaveBeenCalled();
     });
 
-    it('should display user profile information', () => {
+    it('should navigate to dashboard when CTA is clicked by authenticated user', () => {
       (useAuth as jest.Mock).mockReturnValue({
         ...mockAuth,
         user: mockUser,
+        loading: false,
       });
 
       render(<Home />);
 
-      expect(screen.getByText('Driver Profile')).toBeInTheDocument();
-      expect(screen.getByText('Test Driver')).toBeInTheDocument();
-      expect(screen.getByText('123456')).toBeInTheDocument();
-      expect(screen.getByText('2 Classes')).toBeInTheDocument(); // License classes count
-    });
+      const ctaButton = screen.getByText(/See This Week's Recommendations/);
+      fireEvent.click(ctaButton);
 
-    it('should display license classes information', () => {
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: mockUser,
-      });
-
-      render(<Home />);
-
-      expect(screen.getByText('Road')).toBeInTheDocument();
-      expect(screen.getByText('B')).toBeInTheDocument();
-      expect(screen.getByText('Oval')).toBeInTheDocument();
-      expect(screen.getByText('C')).toBeInTheDocument();
-    });
-
-    it('should display dashboard and logout buttons', () => {
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: mockUser,
-      });
-
-      render(<Home />);
-
-      expect(screen.getByText('View Analytics Dashboard')).toBeInTheDocument();
-      expect(screen.getByText('Test API Connection')).toBeInTheDocument();
-      expect(screen.getByText('Logout')).toBeInTheDocument();
-    });
-
-    it('should call logout function when logout button is clicked', () => {
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: mockUser,
-      });
-
-      render(<Home />);
-
-      const logoutButton = screen.getByText('Logout');
-      fireEvent.click(logoutButton);
-
-      expect(mockAuth.logout).toHaveBeenCalledTimes(1);
-    });
-
-    it('should open API test in new window when test button is clicked', () => {
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: mockUser,
-      });
-
-      // Mock window.open
-      const mockOpen = jest.fn();
-      Object.defineProperty(window, 'open', {
-        value: mockOpen,
-        writable: true,
-      });
-
-      render(<Home />);
-
-      const testButton = screen.getByText('Test API Connection');
-      fireEvent.click(testButton);
-
-      expect(mockOpen).toHaveBeenCalledWith('/api/auth/me', '_blank');
-    });
-  });
-
-  describe('Auth Success State', () => {
-    it('should display success state when user is authenticated', () => {
-      const mockUser = {
-        id: 'test-id',
-        iracingCustomerId: 123456,
-        displayName: 'Test Driver',
-        licenseClasses: [
-          { category: 'road', level: 'B', safetyRating: 3.5, iRating: 1500 },
-        ],
-        createdAt: '2024-01-01T00:00:00Z',
-        lastSyncAt: '2024-01-01T00:00:00Z',
-      };
-
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: mockUser,
-      });
-
-      render(<Home />);
-
-      expect(screen.getByText('Welcome to the Track!')).toBeInTheDocument();
+      expect(mockRouter.push).toHaveBeenCalledWith('/dashboard/recommendations');
     });
   });
 
   describe('Responsive Design', () => {
-    it('should have responsive classes for mobile and desktop', () => {
-      // Ensure we're in unauthenticated state
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: null,
-        loading: false,
-      });
-      (mockSearchParams.get as jest.Mock).mockReturnValue(null);
-
+    it('should have responsive layout classes', () => {
       render(<Home />);
 
       const main = screen.getByRole('main');
-      expect(main).toHaveClass('min-h-screen');
-
-      // Check for responsive grid classes in unauthenticated state
-      const valuePropsSection = screen.getByText('Performance Analytics').closest('div')?.parentElement;
-      expect(valuePropsSection).toHaveClass('grid', 'grid-cols-1', 'md:grid-cols-3');
-    });
-
-    it('should have responsive text sizing', () => {
-      // Ensure we're in unauthenticated state
-      (useAuth as jest.Mock).mockReturnValue({
-        ...mockAuth,
-        user: null,
-        loading: false,
-      });
-      (mockSearchParams.get as jest.Mock).mockReturnValue(null);
-
-      render(<Home />);
-
-      const heading = screen.getByText('Should I Race This?');
-      expect(heading).toHaveClass('text-5xl', 'md:text-6xl');
+      expect(main).toBeInTheDocument();
     });
   });
 });

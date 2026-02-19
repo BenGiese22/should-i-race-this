@@ -68,7 +68,7 @@ const IRacingLoginButton = React.forwardRef<HTMLButtonElement, IRacingLoginButto
               viewBox="0 0 24 24"
             >
               <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h18v2H3v-2zm0 4h18v2H3v-2z"/>
-              <path d="M21 3v18l-3-3-3 3V3h6z" fill="#f97316"/>
+              <path d="M21 3v18l-3-3-3 3V3h6z" className="fill-orange-500"/>
             </svg>
           </div>
           

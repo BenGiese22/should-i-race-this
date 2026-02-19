@@ -24,6 +24,7 @@ export interface RacingOpportunity {
   hasOpenSetup: boolean;
   timeSlots: TimeSlot[];
   globalStats: GlobalStats;
+  repeatMinutes?: number | null; // How often races repeat (null for fixed schedule)
 }
 
 export interface TimeSlot {
@@ -204,6 +205,7 @@ export interface RecommendationResponse {
     licenseClasses: LicenseClass[];
     experienceSummary: ExperienceSummary;
   };
+  userHistory: UserHistory;
   metadata: {
     totalOpportunities: number;
     highConfidenceCount: number;

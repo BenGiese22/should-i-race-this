@@ -125,6 +125,7 @@ export class RecommendationEngine {
         licenseClasses: userHistory.licenseClasses,
         experienceSummary
       },
+      userHistory,
       metadata
     };
   }
